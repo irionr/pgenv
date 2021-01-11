@@ -1,4 +1,6 @@
 git-new-workdir
 dev/
-master/
-*REL*_STABLE/
+*master/
+*REL*_STABLE*/
+2Q*
+EDBAS*/

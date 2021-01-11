@@ -5,7 +5,7 @@ git fetch --all -p
 git checkout master
 git reset --hard origin/master
 popd
-for a in REL*
+for a in REL* 2QREL*
 do
     pushd $a
     git checkout $a

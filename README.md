@@ -26,6 +26,9 @@ Initial postgresql checkout
 
     git clone git://git.postgresql.org/git/postgresql.git $HOME/pgsql/master
 
+> **NOTE:** Optionaly, you can use also 2QPG or EDBAS, clone the repositories in the
+> $HOME/pgsql/2QPG-master or $HOME/pgsql/EDBAS-master respectivley.
+
 In Ubuntu, install these packages, which are necessary for configure-all.sh
 
     sudo apt-get install tcl-dev libssl-dev build-essential bison flex \
@@ -49,6 +52,10 @@ Build and install the development head version
 ## Install a stable version (optional)
 
 Add a $VERSION checkout (e.g. 9.4, 9.3, etc...)
+
+To use 2ndQuadrant PG with 3.6 BDR/PGL stack use the 2Q prefix(e.g. 2Q10, 2Q11...)
+To use 2ndQuadrant PG with 3.7 BDR/PGL stack use the 2qm prefix(e.g. 2qm11, 2qm12...)
+For EDBAS use "EDB" prefix (e.g. EDB12, EDB13...)
 
     cd ~/pgsql
     ./new-branch.sh $VERSION

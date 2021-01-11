@@ -19,17 +19,21 @@ pgstatus() {
 _pgenv_hook() {
     if [[ -n "$PG_VERSION" ]]
     then
-        if [[ "$PG_BRANCH" = dev ]]
-        then
-            echo -n "{pgDEV} "
-        else
-            if [[ "$PG_BRANCH" =~ ^2Q ]]
-            then
-                echo -n "{2Q$PG_VERSION} "
-            else
-                echo -n "{pg$PG_VERSION} "
-            fi
-        fi
+    if [[ "$PG_BRANCH" = dev ]]
+    then
+        echo -n "{pgDEV} "
+    elif [[ "$PG_BRANCH" =~ _dev$ ]]
+    then
+        echo -n "{3.72Q$PG_VERSION}"
+    elif [[ "$PG_BRANCH" =~ 3_6$ ]]
+    then
+        echo -n "{3.62Q$PG_VERSION}"
+    elif [[ "$PG_BRANCH" =~ ^EDBAS ]]
+    then
+        echo -n "{EDBAS$PG_VERSION}"
+    else
+        echo -n "{pg$PG_VERSION} "
+    fi
     fi
 }
 
@@ -70,31 +74,46 @@ pgworkon() {
         return 1
         ;;
       dev)
-        PG_BRANCH=dev
         PG_VERSION=$CURRENT_DEVEL
+        PG_BRANCH=dev
         BASE_PORT=6400
         ;;
       master|$CURRENT_DEVEL)
-        PG_BRANCH=master
         PG_VERSION=$CURRENT_DEVEL
+        PG_BRANCH=master
+        ;;
+      2qm1*)
+        PG_VERSION="${1#2qm}"
+        PG_BRANCH="2QREL_${PG_VERSION}_STABLE_dev"
+        BASE_PORT=8400
         ;;
       2[Qq]1*)
         PG_VERSION="${1#2[Qq]}"
-        PG_BRANCH="2QREL_${PG_VERSION}_STABLE"
+        PG_BRANCH="2QREL_${PG_VERSION}_STABLE_3_6"
         BASE_PORT=7400
         ;;
       2[Qq]*)
         PG_VERSION="${1#2[Qq]}"
-        PG_BRANCH="2QREL${PG_VERSION/./_}_STABLE"
-        BASE_PORT=7400
+        PG_BRANCH="2QREL${PG_VERSION/./_}_STABLE_3_6"
+        BASE_PORT=9400
         ;;
       1*)
-        PG_BRANCH="REL_${1}_STABLE"
         PG_VERSION="$1"
+        PG_BRANCH="REL_${1}_STABLE"
+        ;;
+      EDBAS-master)
+        PG_VERSION=14
+        PG_BRANCH="EDBAS-master"
+        BASE_PORT=10400
+        ;;
+      EDB1*)
+        PG_VERSION="${1#EDB}"
+        PG_BRANCH="EDBAS_${PG_VERSION}_STABLE"
+        BASE_PORT=11400
         ;;
       *)
-        PG_BRANCH="REL${1/./_}_STABLE"
         PG_VERSION="$1"
+        PG_BRANCH="REL${1/./_}_STABLE"
         ;;
     esac
 
@@ -134,6 +153,7 @@ pgworkon() {
 
     pgreinit() {
         pgstop
+        rm -f /tmp/pgsql-$PG_BRANCH.log
         rm -fr "$PGDATA"
         mkdir -p "$PGDATA"
         initdb -U postgres $([ ${PG_VERSION_NUM} -ge 93 ] && echo '-k') "$@"
@@ -153,6 +173,13 @@ log_lock_waits = on
 log_checkpoints = on
 log_temp_files = 0
 log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d '
+
+# BDR settings
+shared_preload_libraries = 'pglogical,bdr'
+pg2q.backtrace_on_internal_error=on
+
+
+# Other settings
 EOF
         if [ ${PG_VERSION_NUM} -ge 90 ] && [ ${PG_VERSION_NUM} -lt 95 ]
         then
