@@ -77,43 +77,62 @@ pgworkon() {
         PG_VERSION=$CURRENT_DEVEL
         PG_BRANCH=dev
         BASE_PORT=6400
+        BDRSRC=/Users/firion/github/stack36/BDR
+        PGLSRC=/Users/firion/github/stack36/pglogical
         ;;
       master|$CURRENT_DEVEL)
         PG_VERSION=$CURRENT_DEVEL
         PG_BRANCH=master
+        BDRSRC=/Users/firion/github/stack36/BDR
+        PGLSRC=/Users/firion/github/stack36/pglogical
         ;;
       2qm1*)
         PG_VERSION="${1#2qm}"
         PG_BRANCH="2QREL_${PG_VERSION}_STABLE_dev"
         BASE_PORT=8400
+        BDRSRC=/Users/firion/github/stack37/BDR
+        PGLSRC=/Users/firion/github/stack37/pglogical
+
         ;;
       2[Qq]1*)
         PG_VERSION="${1#2[Qq]}"
         PG_BRANCH="2QREL_${PG_VERSION}_STABLE_3_6"
         BASE_PORT=7400
+        BDRSRC=/Users/firion/github/stack36/BDR
+        PGLSRC=/Users/firion/github/stack36/pglogical
         ;;
       2[Qq]*)
         PG_VERSION="${1#2[Qq]}"
         PG_BRANCH="2QREL${PG_VERSION/./_}_STABLE_3_6"
         BASE_PORT=9400
+        BDRSRC=/Users/firion/github/stack36/BDR
+        PGLSRC=/Users/firion/github/stack36/pglogical
         ;;
       1*)
         PG_VERSION="$1"
         PG_BRANCH="REL_${1}_STABLE"
+        BDRSRC=/Users/firion/github/stack36/BDR
+        PGLSRC=/Users/firion/github/stack36/pglogical
         ;;
       EDBAS-master)
         PG_VERSION=14
         PG_BRANCH="EDBAS-master"
         BASE_PORT=10400
+        BDRSRC=/Users/firion/github/stack37/BDR
+        PGLSRC=/Users/firion/github/stack37/pglogical
         ;;
       EDB1*)
         PG_VERSION="${1#EDB}"
         PG_BRANCH="EDBAS_${PG_VERSION}_STABLE"
         BASE_PORT=11400
+        BDRSRC=/Users/firion/github/stack37/BDR
+        PGLSRC=/Users/firion/github/stack37/pglogical
         ;;
       *)
         PG_VERSION="$1"
         PG_BRANCH="REL${1/./_}_STABLE"
+        BDRSRC=/Users/firion/github/stack36/BDR
+        PGLSRC=/Users/firion/github/stack36/pglogical
         ;;
     esac
 
@@ -134,13 +153,16 @@ pgworkon() {
     if [ -z "$PG_OLD_PATH" ]; then
         PG_OLD_PATH=$PATH
     fi
-    PGSRC=$DIR
+    export PGSRC=$DIR
     export PATH="$BINDIR:$PG_OLD_PATH"
     export PGDATA="$DATADIR"
     export PGDATABASE="postgres"
     export PGUSER="postgres"
     export PGPORT=$((BASE_PORT + PG_VERSION_NUM))
     export PGHOST=/tmp
+    export WorkDir=/Users/firion/work
+    export BDRSRC
+    export PGLSRC
 
     if which dpkg-architecture > /dev/null; then
         # No undo action on pgdeactivate. Having libreadline preloaded
@@ -233,14 +255,55 @@ EOF
         pgstop && pgstart
     }
 
+    # prepbug [master|3_6] BDR-670 
+    prepbug() {
+        export Release=$1
+        export Bug=$2
+
+        export BugDir=$WorkDir/$Bug
+        export CRDir=$BugDir/coderoot
+        export PGDir=$CRDir/pg
+        export BDRDir=$CRDir/bdr
+        export PGLDir=$CRDir/pgl
+        export BuildDir=$BugDir/build
+        export ReproDir=$BugDir/repro
+        export DataDir=$BugDir/data
+        export TAGS_FILE=$CRDir/tags
+        export PATH=$BuildDir/bin:$PATH
+
+        if [ -d $WorkDir/$Bug ]; then
+	        echo "Bug $Bug already exists"
+            cd  $WorkDir/$Bug
+            return;
+        else
+            mkdir -p $CRDir
+            mkdir -p $ReproDir
+            mkdir -p $BuildDir
+            mkdir -p $DataDir
+
+        fi
+
+        RepDirs="$PGSRC $PGLSRC $BDRSRC"
+
+        echo "Setting up repository for $Rep from $RepDir in $BugRepDir"
+        for Rep in $RepDirs; do
+            BugRepDir=$CRDir/$Rep || exit 
+            git clone $Rep $BugRepDir || exit 1
+	        cd $BugRepDir || exit
+            BranchName=dev/$Bug
+            git checkout --track -b $BranchName || exit 1
+        done
+    }
+
     pgdeactivate() {
         if [ -n "$PG_OLD_PATH" ]; then
             export PATH=$PG_OLD_PATH
             unset PG_OLD_PATH
         fi
-        unset PGSRC PGDATA PGHOST PGDATABASE PGUSER PGPORT PG_BRANCH PG_VERSION
+        unset PGSRC PGDATA PGHOST PGDATABASE PGUSER PGPORT PG_BRANCH PG_VERSION WorkDir BDRSRC PGLSRC
         unset pgdeactivate pgreinit pgstop pgstart pgrestart
     }
+
 
     unset usage
 }

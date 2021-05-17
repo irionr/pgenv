@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -x
 
 case "$1" in
   "")
