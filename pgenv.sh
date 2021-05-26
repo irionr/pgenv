@@ -1,5 +1,6 @@
+
 pgstatus() {
-    local PG_DIR="$HOME/.pgenv"
+    local PG_DIR="$HOME/work/BDR-670/.pgenv"
     local versiondir version bindir datadir
     for versiondir in $PG_DIR/data/*
     do
@@ -35,6 +36,11 @@ _pgenv_hook() {
         echo -n "{pg$PG_VERSION} "
     fi
     fi
+    if [[ -n "$PG_WORKON" ]]
+    then
+        echo -n  "{$PG_WORKON}"
+    fi
+
 }
 
 if ! [[ "$PROMPT_COMMAND" =~ _pgenv_hook ]]; then
@@ -42,25 +48,27 @@ if ! [[ "$PROMPT_COMMAND" =~ _pgenv_hook ]]; then
 fi
 
 pgworkon() {
-    local PG_DIR="$HOME/.pgenv"
+
     local SOURCE_DIR="$HOME/pgsql"
     local CURRENT_DEVEL=14
     local BASE_PORT=5400
 
-    if [ -n "$2" ]
-    then
-        (
-            pgworkon "$1"
-            shift
-            # alias the pg* functions to a more intuitive name
-            stop(){ pgstop "$@";}
-            start(){ pgstart "$@";}
-            restart(){ pgrestart "$@";}
-            reinit(){ pgreinit "$@";}
-            "$@"
-        )
-        return
-    fi
+    # command the instance  directly when using pgworkon
+    # e.g., "pgworkon 13 reinit"
+    # if [ -n "$2" ]
+    # then
+    #     (
+    #         pgworkon "$1"
+    #         shift
+    #         # alias the pg* functions to a more intuitive name
+    #         stop(){ pgstop "$@";}
+    #         start(){ pgstart "$@";}
+    #         restart(){ pgrestart "$@";}
+    #         reinit(){ pgreinit "$@";}
+    #         "$@"
+    #     )
+    #     return
+    # fi
 
     usage() {
         [ -n "$1" ] && echo "$1" 1>&2
@@ -86,16 +94,19 @@ pgworkon() {
         PG_VERSION="${1#2qm}"
         PG_BRANCH="2QREL_${PG_VERSION}_STABLE_dev"
         BASE_PORT=8400
+        ORIGIN_PG_REPO=$PG_2Q_REPO
         ;;
       2[Qq]1*)
         PG_VERSION="${1#2[Qq]}"
         PG_BRANCH="2QREL_${PG_VERSION}_STABLE_3_6"
         BASE_PORT=7400
+        ORIGIN_PG_REPO=$PG_2Q_REPO
         ;;
       2[Qq]*)
         PG_VERSION="${1#2[Qq]}"
         PG_BRANCH="2QREL${PG_VERSION/./_}_STABLE_3_6"
         BASE_PORT=9400
+        ORIGIN_PG_REPO=$2QPG_REPO
         ;;
       1*)
         PG_VERSION="$1"
@@ -105,11 +116,13 @@ pgworkon() {
         PG_VERSION=14
         PG_BRANCH="EDBAS-master"
         BASE_PORT=10400
+        ORIGIN_PG_REPO=$EDBAS_REPO
         ;;
       EDB1*)
         PG_VERSION="${1#EDB}"
         PG_BRANCH="EDBAS_${PG_VERSION}_STABLE"
         BASE_PORT=11400
+        ORIGIN_PG_REPO=$EDBAS_REPO
         ;;
       *)
         PG_VERSION="$1"
@@ -117,10 +130,27 @@ pgworkon() {
         ;;
     esac
 
-    PG_VERSION_NUM=${PG_VERSION/./}
+    PG_VERS_NUM=${PG_VERSION/./}
     if [ ${PG_VERSION%%.*} -ge 10 ]
     then
-        PG_VERSION_NUM=${PG_VERSION_NUM}0
+        PG_VERS_NUM=${PG_VERS_NUM}0
+    fi
+
+    if [ -n "$2" ]
+    then
+        local PG_DIR="$HOME/work/$2/.pgenv"
+        if [ ! -d "$HOME/work/$2/dev/pgl" ] || [ ! -d "$HOME/work/$2/dev/bdr" ]
+        then
+            $HOME/pgsql/new-branch.sh $1
+            $HOME/pgsql/configure-all.sh $1 $2
+            $HOME/pgsql/install-all.sh $1 $2
+
+            git clone -b REL3_7_STABLE --single-branch $PGL_REPO $HOME/work/$2/dev/pgl
+            git clone -b REL3_7_STABLE --single-branch $BDR_REPO $HOME/work/$2/dev/bdr
+        fi
+        cd $HOME/work/$2/dev
+    else
+        local PG_DIR="$HOME/.pgenv"
     fi
 
     local DIR="$SOURCE_DIR/$PG_BRANCH"
@@ -139,8 +169,9 @@ pgworkon() {
     export PGDATA="$DATADIR"
     export PGDATABASE="postgres"
     export PGUSER="postgres"
-    export PGPORT=$((BASE_PORT + PG_VERSION_NUM))
+    export PGPORT=$((BASE_PORT + PG_VERS_NUM))
     export PGHOST=/tmp
+    export PG_WORKON=$2
 
     if which dpkg-architecture > /dev/null; then
         # No undo action on pgdeactivate. Having libreadline preloaded
@@ -156,7 +187,7 @@ pgworkon() {
         rm -f /tmp/pgsql-$PG_BRANCH.log
         rm -fr "$PGDATA"
         mkdir -p "$PGDATA"
-        initdb -U postgres $([ ${PG_VERSION_NUM} -ge 93 ] && echo '-k') "$@"
+        initdb -U postgres $([ ${PG_VERS_NUM} -ge 93 ] && echo '-k') "$@"
         cat <<-EOF >> "$PGDATA/postgresql.conf"
 archive_mode = on
 archive_command = 'cd .'
@@ -181,24 +212,24 @@ pg2q.backtrace_on_internal_error=on
 
 # Other settings
 EOF
-        if [ ${PG_VERSION_NUM} -ge 90 ] && [ ${PG_VERSION_NUM} -lt 95 ]
+        if [ ${PG_VERS_NUM} -ge 90 ] && [ ${PG_VERS_NUM} -lt 95 ]
         then
             echo "wal_level = hot_standby" >> "$PGDATA/postgresql.conf"
-        elif [ ${PG_VERSION_NUM} -ge 95 ]
+        elif [ ${PG_VERS_NUM} -ge 95 ]
         then
             echo "wal_level = logical" >> "$PGDATA/postgresql.conf"
             echo "track_commit_timestamp=on" >> "$PGDATA/postgresql.conf"
         fi
-        if [ ${PG_VERSION_NUM} -ge 90 ]
+        if [ ${PG_VERS_NUM} -ge 90 ]
         then
             echo "hot_standby = on" >> "$PGDATA/postgresql.conf"
             echo "max_wal_senders = 10" >> "$PGDATA/postgresql.conf"
         fi
-        if [ ${PG_VERSION_NUM} -ge 94 ]
+        if [ ${PG_VERS_NUM} -ge 94 ]
         then
             echo "max_replication_slots = 10" >> "$PGDATA/postgresql.conf"
         fi
-        if [ ${PG_VERSION_NUM} -le 94 ]
+        if [ ${PG_VERS_NUM} -le 94 ]
         then
             echo "checkpoint_segments = 32" >> "$PGDATA/postgresql.conf"
         fi
@@ -238,7 +269,7 @@ EOF
             export PATH=$PG_OLD_PATH
             unset PG_OLD_PATH
         fi
-        unset PGSRC PGDATA PGHOST PGDATABASE PGUSER PGPORT PG_BRANCH PG_VERSION
+        unset PGSRC PGDATA PGHOST PGDATABASE PGUSER PGPORT PG_BRANCH PG_VERSION PG_WORKON ORIGIN_PG_REPO
         unset pgdeactivate pgreinit pgstop pgstart pgrestart
     }
 

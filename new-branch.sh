@@ -19,12 +19,12 @@ case "$1" in
   master|14)
     BRANCH=master
     VER=14
-    MASTER=master
+    MASTER=PG-master
     ;;
   1*)
     BRANCH="REL_${1}_STABLE"
     VER="$1"
-    MASTER=master
+    MASTER=PG-master
     ;;
   EDBAS-master|14)
     BRANCH=EDBAS-master
@@ -39,13 +39,13 @@ case "$1" in
   *)
     BRANCH="REL${1/./_}_STABLE"
     VER="$1"
-    MASTER=master
+    MASTER=PG-master
     ;;
 esac
 
-git --git-dir=$MASTER/.git/ config gc.auto 0
+git --git-dir=$HOME/pgsql/$MASTER/.git/ config gc.auto 0
 
-if [ ! -d "$MASTER" ]; then
+if [ ! -d "$HOME/pgsql/$MASTER" ]; then
     echo "ERROR: missing $MASTER directory" >&2
     exit 1
 fi
@@ -55,8 +55,8 @@ if [ -d "$BRANCH" ]; then
     exit 0
 fi
 
-if [ ! -e git-new-workdir ]; then
-   curl -L https://raw.github.com/git/git/master/contrib/workdir/git-new-workdir > git-new-workdir
+if [ ! -e $HOME/pgsql/git-new-workdir ]; then
+   curl -L https://raw.github.com/git/git/master/contrib/workdir/git-new-workdir > $HOME/pgsql/git-new-workdir
 fi
 
-bash git-new-workdir $MASTER/.git/ $BRANCH $BRANCH
+$SHELL $HOME/pgsql/git-new-workdir $ORIGIN_PG_REPO.git/ $BRANCH $BRANCH
