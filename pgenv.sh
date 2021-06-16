@@ -94,19 +94,16 @@ pgworkon() {
         PG_VERSION="${1#2qm}"
         PG_BRANCH="2QREL_${PG_VERSION}_STABLE_dev"
         BASE_PORT=8400
-        ORIGIN_PG_REPO=$PG_2Q_REPO
         ;;
       2[Qq]1*)
         PG_VERSION="${1#2[Qq]}"
         PG_BRANCH="2QREL_${PG_VERSION}_STABLE_3_6"
         BASE_PORT=7400
-        ORIGIN_PG_REPO=$PG_2Q_REPO
         ;;
       2[Qq]*)
         PG_VERSION="${1#2[Qq]}"
         PG_BRANCH="2QREL${PG_VERSION/./_}_STABLE_3_6"
         BASE_PORT=9400
-        ORIGIN_PG_REPO=$2QPG_REPO
         ;;
       1*)
         PG_VERSION="$1"
@@ -116,13 +113,11 @@ pgworkon() {
         PG_VERSION=14
         PG_BRANCH="EDBAS-master"
         BASE_PORT=10400
-        ORIGIN_PG_REPO=$EDBAS_REPO
         ;;
       EDB1*)
         PG_VERSION="${1#EDB}"
         PG_BRANCH="EDBAS_${PG_VERSION}_STABLE"
         BASE_PORT=11400
-        ORIGIN_PG_REPO=$EDBAS_REPO
         ;;
       *)
         PG_VERSION="$1"
@@ -270,7 +265,7 @@ EOF
             export PATH=$PG_OLD_PATH
             unset PG_OLD_PATH
         fi
-        unset PGSRC PGDATA PGHOST PGDATABASE PGUSER PGPORT PG_BRANCH PG_VERSION PG_WORKON ORIGIN_PG_REPO
+        unset PGSRC PGDATA PGHOST PGDATABASE PGUSER PGPORT PG_BRANCH PG_VERSION PG_WORKON
         unset pgdeactivate pgreinit pgstop pgstart pgrestart
     }
 
