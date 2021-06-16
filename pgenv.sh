@@ -144,9 +144,10 @@ pgworkon() {
             $HOME/pgsql/new-branch.sh $1
             $HOME/pgsql/configure-all.sh $1 $2
             $HOME/pgsql/install-all.sh $1 $2
-
-            git clone -b REL3_7_STABLE --single-branch $PGL_REPO $HOME/work/$2/dev/pgl
-            git clone -b REL3_7_STABLE --single-branch $BDR_REPO $HOME/work/$2/dev/bdr
+            cd $PGL_REPO
+            git worktree add -b dev/$2 $HOME/work/$2/dev/pgl
+            cd $BDR_REPO
+            git worktree add -b dev/$2 $HOME/work/$2/dev/bdr
         fi
         cd $HOME/work/$2/dev
     else

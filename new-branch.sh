@@ -54,9 +54,7 @@ if [ -d "$BRANCH" ]; then
     echo "Nothing to do"
     exit 0
 fi
+pushd $HOME/pgsql/$MASTER
+git worktree add -b $BRANCH ../$BRANCH
+popd
 
-if [ ! -e $HOME/pgsql/git-new-workdir ]; then
-   curl -L https://raw.github.com/git/git/master/contrib/workdir/git-new-workdir > $HOME/pgsql/git-new-workdir
-fi
-
-$SHELL $HOME/pgsql/git-new-workdir $ORIGIN_PG_REPO.git/ $BRANCH $BRANCH
