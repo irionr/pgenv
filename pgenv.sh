@@ -140,9 +140,11 @@ pgworkon() {
             $HOME/pgsql/configure-all.sh $1 $2
             $HOME/pgsql/install-all.sh $1 $2
             cd $PGL_REPO
-            git worktree add -b dev/$2 $HOME/work/$2/dev/pgl
+            git worktree add -b dev/$2 $HOME/work/$2/dev/pgl ||
+				git worktree add  $HOME/work/$2/dev/pgl dev/$2
             cd $BDR_REPO
-            git worktree add -b dev/$2 $HOME/work/$2/dev/bdr
+            git worktree add -b dev/$2 $HOME/work/$2/dev/bdr ||
+				git worktree add  $HOME/work/$2/dev/bdr dev/$2
         fi
         cd $HOME/work/$2/dev
     else
