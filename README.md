@@ -6,7 +6,7 @@ This is a personal collection of shell scripts to easily develop and test severa
 
 Checkout the project in `$HOME/pgsql`
 
-    git clone https://github.com/mnencia/pgenv.git $HOME/pgsql
+    git clone https://github.com/irionr/pgenv.git $HOME/pgsql
 
 Add the following lines to `~/.bashrc`
 
