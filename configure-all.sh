@@ -59,7 +59,9 @@ then
         # if an argument is provided install only that version
         [ -n "$1" ] && [ "$1" != "$a" ] && [ "REL${1/./_}_STABLE" != "$a" ] && [ "REL_${1}_STABLE" != "$a" ] && [ "2QREL_${1#2Q}_STABLE_3_6" != "$a" ] && [ "2QREL_${1#2qm}_STABLE_dev" != "$a" ] && [ "EDBAS_${1#EDB}_STABLE" != "$a" ] && continue
 
-        git clone $a $HOME/work/$2/dev/$a
+        pushd $a
+		git worktree add -b dev/$2 $HOME/work/$2/dev/$a
+        popd
 
         instdir="$HOME/work/$2/.pgenv/versions/$a"
         pushd $HOME/work/$2/dev/$a
