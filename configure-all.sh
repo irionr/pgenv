@@ -36,7 +36,7 @@ then
     DEBUG_ARGS+=" --enable-tap-tests"
 fi
 
-CFLAGS="-O0 -g -fno-omit-frame-pointer"
+CFLAGS="-ggdb -Og -g3 -fno-omit-frame-pointer"
 
 # openSUSE and SUSE have tclConfig.sh in /usr/lib64 for x86_64 machines
 if [ -f "/etc/SuSE-release" ] && [ "$(uname -m)" == 'x86_64' ]
