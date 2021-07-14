@@ -88,7 +88,7 @@ pgworkon() {
         ;;
       master|$CURRENT_DEVEL)
         PG_VERSION=$CURRENT_DEVEL
-        PG_BRANCH=master
+        PG_BRANCH=PG-master
         ;;
       2qm1*)
         PG_VERSION="${1#2qm}"

@@ -24,7 +24,7 @@ Reload the current shell
 
 Initial postgresql checkout
 
-    git clone git://git.postgresql.org/git/postgresql.git $HOME/pgsql/master
+    git clone git://git.postgresql.org/git/postgresql.git $HOME/pgsql/PG-master
 
 > **NOTE:** Optionaly, you can use also 2QPG or EDBAS, clone the repositories in the
 > $HOME/pgsql/2QPG-master or $HOME/pgsql/EDBAS-master respectivley.
