@@ -19,9 +19,9 @@ then
 		[ -d $instdir ] && continue
 
         pushd $a
-        make -j$(nproc)
+        make -j
         make install
-        make -C contrib -j$(nproc)
+        make -C contrib
         make -C contrib install
         popd
     done
@@ -42,9 +42,9 @@ else
 
         rm -fr $a/DemoInstall "$instdir"
         pushd $a
-        make -j$(nproc)
+        make -j$((`nproc`+1))
         make install
-        make -C contrib -j$(nproc)
+        make -C contrib -j$((`nproc`+1))
         make -C contrib install
         popd
     done
