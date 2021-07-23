@@ -16,17 +16,17 @@ case "$1" in
     VER=${1#2[q|Q]}
     MASTER=2QPG-master
     ;;
-  master|14)
+  master)
     BRANCH=master
-    VER=14
-    MASTER=PG-master
+    VER=15
+    MASTER=master
     ;;
   1*)
     BRANCH="REL_${1}_STABLE"
     VER="$1"
-    MASTER=PG-master
+    MASTER=master
     ;;
-  EDBAS-master|14)
+  EDBAS-master)
     BRANCH=EDBAS-master
     VER=14
     MASTER=EDBAS-master
@@ -39,7 +39,7 @@ case "$1" in
   *)
     BRANCH="REL${1/./_}_STABLE"
     VER="$1"
-    MASTER=PG-master
+    MASTER=master
     ;;
 esac
 
@@ -55,6 +55,6 @@ if [ -d "$BRANCH" ]; then
     exit 0
 fi
 pushd $HOME/pgsql/$MASTER
-git worktree add -b $BRANCH ../$BRANCH
+git worktree add ../$BRANCH $BRANCH || echo "Branch $BRANCH already exists"
 popd
 

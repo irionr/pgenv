@@ -50,7 +50,7 @@ fi
 pgworkon() {
 
     local SOURCE_DIR="$HOME/pgsql"
-    local CURRENT_DEVEL=14
+    local CURRENT_DEVEL=15
     local BASE_PORT=5400
 
     # command the instance  directly when using pgworkon
@@ -88,7 +88,7 @@ pgworkon() {
         ;;
       master|$CURRENT_DEVEL)
         PG_VERSION=$CURRENT_DEVEL
-        PG_BRANCH=PG-master
+        PG_BRANCH=master
         ;;
       2qm1*)
         PG_VERSION="${1#2qm}"
