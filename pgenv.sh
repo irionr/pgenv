@@ -81,47 +81,53 @@ pgworkon() {
         usage "ERROR: missing argument"
         return 1
         ;;
-      dev)
-        PG_VERSION=$CURRENT_DEVEL
-        PG_BRANCH=dev
-        BASE_PORT=6400
-        ;;
+      # community
       master|$CURRENT_DEVEL)
         PG_VERSION=$CURRENT_DEVEL
         PG_BRANCH=master
-        ;;
-      2qm1*)
-        PG_VERSION="${1#2qm}"
-        PG_BRANCH="2QREL_${PG_VERSION}_STABLE_dev"
-        BASE_PORT=8400
-        ;;
-      2[Qq]1*)
-        PG_VERSION="${1#2[Qq]}"
-        PG_BRANCH="2QREL_${PG_VERSION}_STABLE_3_6"
-        BASE_PORT=7400
-        ;;
-      2[Qq]*)
-        PG_VERSION="${1#2[Qq]}"
-        PG_BRANCH="2QREL${PG_VERSION/./_}_STABLE_3_6"
-        BASE_PORT=9400
+        BASE_BRANCH="REL3_7_STABLE"
         ;;
       1*)
         PG_VERSION="$1"
         PG_BRANCH="REL_${1}_STABLE"
+        BASE_BRANCH="REL3_7_STABLE"
         ;;
+      # PGE (2QPG)
+      m2q1*) # PGE compatible with bdr master (4.0)
+        PG_VERSION="${1#m2q}"
+        PG_BRANCH="2QREL_${PG_VERSION}_STABLE_dev"
+        BASE_BRANCH="master"
+        BASE_PORT=8400
+        ;;
+      372q1*) # PGE compatible with bdr 3.7
+        PG_VERSION="${1#372q}"
+        PG_BRANCH="2QREL_${PG_VERSION}_STABLE_dev"
+        BASE_BRANCH="REL3_7_STABLE"
+        BASE_PORT=7400
+        ;;
+      362q1*) # PGE compatible with bdr 3.6
+        PG_VERSION="${1#362q}"
+        PG_BRANCH="2QREL${PG_VERSION}_STABLE_3_6"
+        BASE_BRANCH="REL3_6_STABLE"
+        BASE_PORT=9400
+        ;;
+      # EDB Advance Server
       EDBAS-master)
         PG_VERSION=14
         PG_BRANCH="EDBAS-master"
+        BASE_BRANCH="REL3_7_STABLE"
         BASE_PORT=10400
         ;;
       EDB1*)
         PG_VERSION="${1#EDB}"
         PG_BRANCH="EDBAS_${PG_VERSION}_STABLE"
+        BASE_BRANCH="REL3_7_STABLE"
         BASE_PORT=11400
         ;;
       *)
         PG_VERSION="$1"
         PG_BRANCH="REL${1/./_}_STABLE"
+        BASE_BRANCH="REL3_7_STABLE"
         ;;
     esac
 
@@ -133,22 +139,29 @@ pgworkon() {
 
     if [ -n "$2" ]
     then
-        local PG_DIR="$HOME/work/$2/.pgenv"
-        if [ ! -d "$HOME/work/$2/dev/pgl" ] || [ ! -d "$HOME/work/$2/dev/bdr" ]
+        export PG_WORKON=$2
+        local BASE_DIR="$HOME/work/$2"
+        local PG_DIR="$BASE_DIR/.pgenv"
+
+        if [ ! -d "$BASE_DIR" ]
         then
-            $HOME/pgsql/new-branch.sh $1
-            $HOME/pgsql/configure-all.sh $1 $2
-            $HOME/pgsql/install-all.sh $1 $2
-            cd $PGL_REPO
-            git worktree add -b dev/$2 $HOME/work/$2/dev/pgl ||
-				git worktree add  $HOME/work/$2/dev/pgl dev/$2
-            cd $BDR_REPO
-            git worktree add -b dev/$2 $HOME/work/$2/dev/bdr ||
-				git worktree add  $HOME/work/$2/dev/bdr dev/$2
+            # create a new dev branch or checkout if exists
+            pushd $PGL_REPO
+            git worktree add -b dev/$2 $BASE_DIR/pgl $BASE_BRANCH ||
+				git worktree add  $BASE_DIR/pgl dev/$2
+            popd
+            pushd $BDR_REPO
+            git worktree add -b dev/$2 $BASE_DIR/bdr $BASE_BRANCH ||
+				git worktree add  $BASE_DIR/bdr dev/$2
+            popd
+            $SOURCE_DIR/new-branch.sh $1 $2
+            $SOURCE_DIR/configure-all.sh $1 $2
+            $SOURCE_DIR/install-all.sh $1 $2
         fi
-        cd $HOME/work/$2/dev
+        cd $BASE_DIR/
     else
-        local PG_DIR="$HOME/.pgenv"
+        local BASE_DIR="$SOURCE_DIR"
+        local PG_DIR="$SOURCE_DIR/.pgenv"
     fi
 
     local DIR="$SOURCE_DIR/$PG_BRANCH"
@@ -169,7 +182,6 @@ pgworkon() {
     export PGUSER="postgres"
     export PGPORT=$((BASE_PORT + PG_VERS_NUM))
     export PGHOST=/tmp
-    export PG_WORKON=$2
 
     if which dpkg-architecture > /dev/null; then
         # No undo action on pgdeactivate. Having libreadline preloaded
@@ -179,6 +191,15 @@ pgworkon() {
             export LD_PRELOAD=/lib/$(dpkg-architecture -qDEB_BUILD_GNU_TYPE)/libreadline.so.6:$LD_PRELOAD
         fi
     fi
+
+    #install also pglogical and bdr
+    for a in $(ls -rd pgl*) $(ls -rd bdr)
+    pushd $BASE_DIR/$a
+    make clean
+    make -j$(nproc)
+    make install
+    popd
+
 
     pgreinit() {
         pgstop

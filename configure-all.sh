@@ -2,8 +2,6 @@
 
 set -e
 
-cd ~/pgsql
-
 ARGS=
 
 if which port > /dev/null
@@ -51,35 +49,32 @@ fi
 
 if [ -n "$2" ];
 then
-    for a in dev master $(ls -rd 2Q*) $(ls -rd REL*) $(ls -rd EDB*)
-    do
-        # if the directory doesn't exist skip it
-        [ -d $a ] || continue
-
-        # if an argument is provided install only that version
-        [ -n "$1" ] && [ "$1" != "$a" ] && [ "REL${1/./_}_STABLE" != "$a" ] && [ "REL_${1}_STABLE" != "$a" ] && [ "2QREL_${1#2Q}_STABLE_3_6" != "$a" ] && [ "2QREL_${1#2qm}_STABLE_dev" != "$a" ] && [ "EDBAS_${1#EDB}_STABLE" != "$a" ] && continue
-
-        pushd $a
-		git worktree add -b dev/$2 $HOME/work/$2/dev/$a
-        popd
-
-        instdir="$HOME/work/$2/.pgenv/versions/$a"
-        pushd $HOME/work/$2/dev/$a
-        ./configure --prefix="$instdir" ${DEBUG_ARGS} ${ARGS} CFLAGS="$CFLAGS"
-        popd
-    done
+    BASE_DIR="$HOME/work/$2"
 else
-    for a in dev master $(ls -rd 2Q*) $(ls -rd *REL*) $(ls -rd EDB*)
-    do
-        # if the directory doesn't exist skip it
-        [ -d $a ] || continue
-
-        # if an argument is provided install only that version
-        [ -n "$1" ] && [ "$1" != "$a" ] && [ "REL${1/./_}_STABLE" != "$a" ] && [ "REL_${1}_STABLE" != "$a" ] && [ "2QREL_${1#2Q}_STABLE_3_6" != "$a" ] && [ "2QREL_${1#2qm}_STABLE_dev" != "$a" ] && [ "EDBAS_${1#EDB}_STABLE" != "$a" ] && continue
-
-        instdir="$HOME/.pgenv/versions/$a"
-        pushd $a
-        ./configure --prefix="$instdir" ${DEBUG_ARGS} ${ARGS} CFLAGS="$CFLAGS"
-        popd
-    done
+    BASE_DIR="$HOME/pgsql"
 fi
+
+pushd $BASE_DIR
+
+for a in master $(ls -rd *REL*)
+do
+    # if the directory doesn't exist skip it
+    [ -d $a ] || continue
+
+    # if an argument is provided install only that version
+    [ -n "$1" ] &&
+        [ "$1" != "$a" ] &&
+        [ "REL${1/./_}_STABLE" != "$a" ] &&
+        [ "REL_${1}_STABLE" != "$a" ] &&
+        [ "2QREL_${1#362q}_STABLE_3_6" != "$a" ] &&
+        [ "2QREL_${1#372q}_STABLE_dev" != "$a" ] &&
+        [ "2QREL_${1#m2q}_STABLE_dev" != "$a" ] &&
+        [ "EDBAS_${1#EDB}_STABLE" != "$a" ] &&
+        continue
+
+    instdir="$BASE_DIR/.pgenv/versions/$a"
+    pushd $a
+    ./configure --prefix="$instdir" ${DEBUG_ARGS} ${ARGS} CFLAGS="$CFLAGS"
+    # return in the $BASE_DIR and remain there
+    popd
+done
