@@ -56,7 +56,7 @@ fi
 
 pushd $BASE_DIR
 
-for a in master $(ls -rd *REL*)
+for a in $(ls -rd *master) $(ls -rd *REL*)
 do
     # if the directory doesn't exist skip it
     [ -d $a ] || continue

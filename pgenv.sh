@@ -192,15 +192,6 @@ pgworkon() {
         fi
     fi
 
-    #install also pglogical and bdr
-    for a in $(ls -rd pgl*) $(ls -rd bdr)
-    pushd $BASE_DIR/$a
-    make clean
-    make -j$(nproc)
-    make install
-    popd
-
-
     pgreinit() {
         pgstop
         rm -f /tmp/pgsql-$PG_BRANCH.log

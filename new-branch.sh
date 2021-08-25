@@ -63,14 +63,18 @@ fi
 if [ -n "$2" ];
 then
     TARGET_DIR="$HOME/work/$2"
+	DEVBRANCH="dev/$2"
+	pushd $SOURCE_DIR/$MASTER
+	git worktree add $TARGET_DIR/$BRANCH $DEVBRANCH ||
+    	git worktree add -b $DEVBRANCH $TARGET_DIR/$BRANCH
+	popd
+else
+	if [ -d "$TARGET_DIR/$BRANCH" ]; then
+	    echo "Nothing to do"
+	    exit 0
+	fi
+	pushd $SOURCE_DIR/$MASTER
+	git worktree add $TARGET_DIR/$BRANCH $BRANCH ||
+	    git worktree add -b dev/$2 $TARGET_DIR/$BRANCH
+	popd
 fi
-
-if [ -d "$TARGET_DIR/$BRANCH" ]; then
-    echo "Nothing to do"
-    exit 0
-fi
-pushd $SOURCE_DIR/$MASTER
-git worktree add $TARGET_DIR/$BRANCH $BRANCH ||
-    git worktree add -b dev/$2 $TARGET_DIR/$BRANCH
-popd
-
