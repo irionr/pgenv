@@ -53,8 +53,9 @@ Build and install the development head version
 
 Add a $VERSION checkout (e.g. 9.4, 9.3, etc...)
 
-To use 2ndQuadrant PG with 3.6 BDR/PGL stack use the 2Q prefix(e.g. 2Q10, 2Q11...)
-To use 2ndQuadrant PG with 3.7 BDR/PGL stack use the 2qm prefix(e.g. 2qm11, 2qm12...)
+To use 2ndQuadrant PG with 3.6 BDR/PGL stack use the 362q prefix(e.g. 362q10, 362q11...)
+To use 2ndQuadrant PG with 3.7 BDR/PGL stack use the 372q prefix(e.g. 372q11, 372q12...)
+To use 2ndQuadrant PG with 4.0(master) BDR/PGL stack use the m2q prefix(e.g. m2q11, m2q12...)
 For EDBAS use "EDB" prefix (e.g. EDB12, EDB13...)
 
     cd ~/pgsql
