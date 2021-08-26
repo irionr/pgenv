@@ -94,7 +94,7 @@ Upgrade only one version (numeric version or master)
 set the environment to use the specific version, if a *ticket number* is specified, then create a working directory in the "$HOME/work" by using git worktrees for the selected postgres, pglogical and bdr versions.
 For pglogical and bdr you need to have the repositories locally and set the environment variables "$PGL_REPO" and "$BDR_REPO" to the respective paths.
 
-For example *pgworkon 2qm13 BDR-100* will create a BDR-100 directory with 2QPG13 checkout on the 2QREL_13_STABLE_dev branch.
+For example *pgworkon m2q13 BDR-100* will create a BDR-100 directory with 2QPG13 checkout on the 2QREL_13_STABLE_dev branch.
 And it will also create pgl and bdr directories checked out on the new "dev/BDR-100" branch pointing to latest master.
 
 ### pgreinit
