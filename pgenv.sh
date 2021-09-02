@@ -216,7 +216,7 @@ log_temp_files = 0
 log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d '
 
 # BDR settings
-shared_preload_libraries = 'pglogical,bdr'
+shared_preload_libraries = 'bdr'
 pg2q.backtrace_on_internal_error=on
 
 
