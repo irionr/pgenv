@@ -12,7 +12,7 @@ fi
 
 pushd $BASE_DIR
 
-for a in $(ls -rd *master) $(ls -rd *REL*) $(ls -rd pgl*) bdr
+for a in $(ls -rd *master) $(ls -rd *STABLE*) $(ls -rd pgl*) bdr
 do
     # if the directory doesn't exist skip it
     [ -d $a ] || continue
