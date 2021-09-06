@@ -26,15 +26,15 @@ then
 fi
 
 ARGS+=" --with-tcl --with-libxml --with-openssl"
-DEBUG_ARGS="--enable-depend --enable-cassert --enable-debug"
+DEBUG_ARGS="--enable-coverage --enable-depend --enable-cassert --enable-debug"
 
 # Enable tap tests if IPC::Run is available
 if [ -n "$(perldoc -lm IPC::Run)" ]
 then
-    DEBUG_ARGS+=" --enable-tap-tests"
+    DEBUG_ARGS+=" --with-perl --enable-tap-tests"
 fi
 
-CFLAGS=" -Wimplicit-fallthrough -Wbad-function-cast -Wno-string-conversion -ggdb -Og -g3 -fno-omit-frame-pointer"
+CFLAGS=" -Wimplicit-fallthrough -Wno-string-conversion -ggdb -Og -g3 -fno-omit-frame-pointer"
 
 # openSUSE and SUSE have tclConfig.sh in /usr/lib64 for x86_64 machines
 if [ -f "/etc/SuSE-release" ] && [ "$(uname -m)" == 'x86_64' ]
