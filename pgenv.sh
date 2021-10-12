@@ -1,22 +1,21 @@
-
-pgstatus() {
-    local PG_DIR="$HOME/work/BDR-670/.pgenv"
-    local versiondir version bindir datadir
-    for versiondir in $PG_DIR/data/*
-    do
-        version=${versiondir##*/}
-        bindir="$PG_DIR/versions/$version/bin"
-        for datadir in $versiondir/*
-        do
-            if [ -d "$bindir" ]; then
-                "$bindir/pg_ctl" -D "$datadir" status | grep PID | sed -n "/pg_ctl:/s//$version: PostgreSQL $($bindir/pg_ctl --version | awk '{print $3}'):/p"
-            else
-                echo  "WARNING: datadir $datadir without corresponding executables in $bindir"
-            fi
-        done
-    done
-}
-
+# TO DO , pgstatus does not work yet.
+#	pgstatus() {
+#	    local PG_DIR="$HOME/work/BDR-670/.pgenv"
+#	    local versiondir version bindir datadir
+#	    for versiondir in $PG_DIR/data/*
+#	    do
+#	        version=${versiondir##*/}
+#	        bindir="$PG_DIR/versions/$version/bin"
+#	        for datadir in $versiondir/*
+#	        do
+#	            if [ -d "$bindir" ]; then
+#	                "$bindir/pg_ctl" -D "$datadir" status | grep PID | sed -n "/pg_ctl:/s//$version: PostgreSQL $($bindir/pg_ctl --version | awk '{print $3}'):/p"
+#	            else
+#	                echo  "WARNING: datadir $datadir without corresponding executables in $bindir"
+#	            fi
+#	        done
+#	    done
+#	}
 _pgenv_hook() {
     if [[ -n "$PG_VERSION" ]]
     then
@@ -51,7 +50,6 @@ if ! [[ "$PROMPT_COMMAND" =~ _pgenv_hook ]]; then
 fi
 
 pgworkon() {
-
     local SOURCE_DIR="$HOME/pgsql"
     local CURRENT_DEVEL=15
     local BASE_PORT=5400
@@ -110,7 +108,7 @@ pgworkon() {
         ;;
       362q1*) # PGE compatible with bdr 3.6
         PG_VERSION="${1#362q}"
-        PG_BRANCH="2QREL${PG_VERSION}_STABLE_3_6"
+        PG_BRANCH="2QREL_${PG_VERSION}_STABLE_3_6"
         BASE_BRANCH="REL3_6_STABLE"
         BASE_PORT=9400
         ;;
