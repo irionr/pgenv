@@ -32,6 +32,9 @@ _pgenv_hook() {
     elif [[ "$PG_BRANCH" =~ ^EDBAS ]]
     then
         echo -n "{EDBAS$PG_VERSION}"
+    elif [[ "$PG_BRANCH" =~ ^BDRPG ]]
+    then
+        echo -n "{BDRPG$PG_VERSION}"
     else
         echo -n "{pg$PG_VERSION} "
     fi
@@ -123,6 +126,12 @@ pgworkon() {
         PG_BRANCH="EDBAS_${PG_VERSION}_STABLE"
         BASE_BRANCH="REL3_7_STABLE"
         BASE_PORT=11400
+        ;;
+      BDRPG1*)
+        PG_VERSION="${1#BDRPG}"
+        PG_BRANCH="BDRPG_${PG_VERSION}_STABLE"
+        BASE_BRANCH="master"
+        BASE_PORT=12400
         ;;
       *)
         PG_VERSION="$1"

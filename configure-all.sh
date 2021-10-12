@@ -70,6 +70,7 @@ do
         [ "2QREL_${1#372q}_STABLE_dev" != "$a" ] &&
         [ "2QREL_${1#m2q}_STABLE_dev" != "$a" ] &&
         [ "EDBAS_${1#EDB}_STABLE" != "$a" ] &&
+        [ "BDRPG_${1#BDRPG}_STABLE" != "$a" ] &&
         continue
 
     instdir="$BASE_DIR/.pgenv/versions/$a"

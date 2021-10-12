@@ -46,6 +46,11 @@ case "$1" in
     VER=${1#EDB}
     MASTER=EDBAS-master
     ;;
+  BDRPG1*)
+    BRANCH=BDRPG_${1#BDRPG}_STABLE
+    VER=${1#BDRPG}
+    MASTER=BDRPG-master
+    ;;
   *)
     BRANCH="REL${1/./_}_STABLE"
     VER="$1"
