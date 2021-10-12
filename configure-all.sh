@@ -34,7 +34,7 @@ then
     DEBUG_ARGS+=" --with-perl --enable-tap-tests"
 fi
 
-CFLAGS=" -Wimplicit-fallthrough -Wno-string-conversion -ggdb -Og -g3 -fno-omit-frame-pointer"
+CFLAGS=" -Wall -Wextra -Wuninitialized -Wint-conversion -Wno-unused-parameter -Wno-sign-compare  -ggdb -Og -g3 -fno-omit-frame-pointer"
 
 # openSUSE and SUSE have tclConfig.sh in /usr/lib64 for x86_64 machines
 if [ -f "/etc/SuSE-release" ] && [ "$(uname -m)" == 'x86_64' ]
