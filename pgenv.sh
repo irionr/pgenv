@@ -19,24 +19,29 @@
 _pgenv_hook() {
     if [[ -n "$PG_VERSION" ]]
     then
-    if [[ "$PG_BRANCH" = dev ]]
-    then
-        echo -n "{pgDEV} "
-    elif [[ "$PG_BRANCH" =~ _dev$ ]]
-    then
-        echo -n "{3.72Q$PG_VERSION}"
-    elif [[ "$PG_BRANCH" =~ 3_6$ ]]
-    then
-        echo -n "{3.62Q$PG_VERSION}"
-    elif [[ "$PG_BRANCH" =~ ^EDBAS ]]
-    then
-        echo -n "{EDBAS$PG_VERSION}"
-    elif [[ "$PG_BRANCH" =~ ^BDRPG ]]
-    then
-        echo -n "{BDRPG$PG_VERSION}"
-    else
-        echo -n "{pg$PG_VERSION} "
-    fi
+		if [[ "$PG_BRANCH" = dev ]]
+		then
+		    echo -n "{pgDEV} "
+		elif [[ "$PG_BRANCH" =~ _dev$ ]]
+		then
+			if [[ "$BASE_BRANCH" = master ]]
+			then
+				echo -n "{m2Q$PG_VERSION}"
+			else
+				echo -n "{3.72Q$PG_VERSION}"
+			fi
+		elif [[ "$PG_BRANCH" =~ 3_6$ ]]
+		then
+		    echo -n "{3.62Q$PG_VERSION}"
+		elif [[ "$PG_BRANCH" =~ ^EDBAS ]]
+		then
+		    echo -n "{EDBAS$PG_VERSION}"
+		elif [[ "$PG_BRANCH" =~ ^BDRPG ]]
+		then
+		    echo -n "{BDRPG$PG_VERSION}"
+		else
+		    echo -n "{pg$PG_VERSION} "
+		fi
     fi
     if [[ -n "$PG_WORKON" ]]
     then
