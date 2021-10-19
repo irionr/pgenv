@@ -7,14 +7,16 @@ do
     git fetch --all -p
     git checkout master
     git reset --hard origin/master
+	git worktree prune
     popd
 done
 
-for a in $(ls -rd *REL*) EDBAS-master
+for a in $(ls -rd *REL*) EDBAS-master BDRPG-master
 do
     pushd $a
     git fetch --all -p
     git checkout $a
     git reset --hard origin/$a
+	git worktree prune
     popd
 done
