@@ -15,7 +15,7 @@ case "$1" in
     MASTER=master
     ;;
   1*)
-    BRANCH="REL${1/./_}_STABLE"
+    BRANCH="REL_${1/./_}_STABLE"
     VER="$1"
     MASTER=master
     ;;
