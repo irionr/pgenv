@@ -26,7 +26,9 @@ then
 fi
 
 ARGS+=" --with-tcl --with-libxml --with-openssl"
-DEBUG_ARGS="--enable-coverage --enable-depend --enable-cassert --enable-debug"
+DEBUG_ARGS="--enable-depend --enable-cassert --enable-debug"
+### unused args
+# --enable-coverage
 
 # Enable tap tests if IPC::Run is available
 if [ -n "$(perldoc -lm IPC::Run)" ]
