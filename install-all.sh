@@ -33,9 +33,9 @@ do
 
     rm -fr $a/DemoInstall "$instdir"
     pushd $a
-    make -j$(nproc)
+    make -j
     make install
-    make -C contrib -j$(nproc)
+    make -C contrib -j
     make -C contrib install
     # return in the $BASE_DIR and remain there
     popd
