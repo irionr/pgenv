@@ -77,6 +77,7 @@ do
 
     instdir="$BASE_DIR/.pgenv/versions/$a"
     pushd $a
+    echo "Running configure with the following arguments: --prefix=$instdir ${DEBUG_ARGS} ${ARGS} CFLAGS=$CFLAGS"
     ./configure --prefix="$instdir" ${DEBUG_ARGS} ${ARGS} CFLAGS="$CFLAGS"
     # return in the $BASE_DIR and remain there
     popd
