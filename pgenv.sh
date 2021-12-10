@@ -110,7 +110,7 @@ pgworkon() {
         PG_VERSION="${1#m2q}"
         PG_BRANCH="2QREL_${PG_VERSION}_STABLE_dev"
         BASE_BRANCH="master"
-        BASE_PORT=8400
+        BASE_PORT=6400
         ;;
       372q1*) # PGE compatible with bdr 3.7
         PG_VERSION="${1#372q}"
@@ -122,26 +122,26 @@ pgworkon() {
         PG_VERSION="${1#362q}"
         PG_BRANCH="2QREL_${PG_VERSION}_STABLE_3_6"
         BASE_BRANCH="REL3_6_STABLE"
-        BASE_PORT=9400
+        BASE_PORT=8400
         ;;
       # EDB Advance Server
       EDBAS-master)
         PG_VERSION=14
         PG_BRANCH="EDBAS-master"
         BASE_BRANCH="REL3_7_STABLE"
-        BASE_PORT=10400
+        BASE_PORT=9400
         ;;
       EDB1*)
         PG_VERSION="${1#EDB}"
         PG_BRANCH="EDBAS_${PG_VERSION}_STABLE"
         BASE_BRANCH="REL3_7_STABLE"
-        BASE_PORT=11400
+        BASE_PORT=10400
         ;;
       BDRPG1*)
         PG_VERSION="${1#BDRPG}"
         PG_BRANCH="BDRPG_${PG_VERSION}_STABLE"
         BASE_BRANCH="master"
-        BASE_PORT=12400
+        BASE_PORT=11400
         ;;
       *)
         PG_VERSION="$1"
@@ -159,6 +159,7 @@ pgworkon() {
     if [ -n "$2" ]
     then
         export PG_WORKON=$2
+		JIRA="${2#BDR-}"
         local BASE_DIR="$HOME/work/$2"
         local PG_DIR="$BASE_DIR/.pgenv"
 
@@ -199,7 +200,7 @@ pgworkon() {
     export PGDATA="$DATADIR"
     export PGDATABASE="postgres"
     export PGUSER="postgres"
-    export PGPORT=$((BASE_PORT + PG_VERS_NUM))
+    export PGPORT=$((BASE_PORT + PG_VERS_NUM + JIRA))
     export PGHOST=/tmp
 
     if which dpkg-architecture > /dev/null; then
