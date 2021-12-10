@@ -218,7 +218,7 @@ checkpoint_completion_target = 0.9
 # Sane logging
 logging_collector = on
 log_directory = '/tmp'
-log_filename = 'pgsql-$PG_BRANCH.log'
+log_filename = 'pgsql-$PG_BRANCH-$PG_WORKON.log'
 log_min_duration_statement = 0
 log_autovacuum_min_duration = 0
 log_min_messages = info
