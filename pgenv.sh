@@ -58,6 +58,13 @@ pgworkon() {
     local SOURCE_DIR="$HOME/pgsql"
     local CURRENT_DEVEL=15
     local BASE_PORT=5400
+	local JIRA=0
+    # clenup old env
+	if [ -n "$PG_OLD_PATH" ]; then
+        export PATH=$PG_OLD_PATH
+        unset PG_OLD_PATH
+    fi
+    unset PGSRC PGDATA PGHOST PGDATABASE PGUSER PGPORT PG_BRANCH PG_VERSION PG_WORKON
 
     # command the instance  directly when using pgworkon
     # e.g., "pgworkon 13 reinit"
