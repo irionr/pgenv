@@ -180,7 +180,7 @@ pgworkon() {
 
     pgreinit() {
         pgstop
-        rm -f /tmp/pgsql-$PG_BRANCH.log
+        rm -f /tmp/pgsql-$PG_BRANCH-$PG_WORKON.log
         rm -fr "$PGDATA"
         mkdir -p "$PGDATA"
         initdb -U postgres $([ ${PG_VERS_NUM} -ge 93 ] && echo '-k') "$@"
@@ -234,7 +234,7 @@ local replication postgres trust
 host  replication postgres 127.0.0.1/8 trust
 host  replication postgres ::1/128 trust
 EOF
-        :> /tmp/pgsql-$PG_BRANCH.log start
+        :> /tmp/pgsql-$PG_BRANCH-$PG_WORKON.log start
         pgstart
     }
 
