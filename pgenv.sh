@@ -1,21 +1,4 @@
-# TO DO , pgstatus does not work yet.
-#	pgstatus() {
-#	    local PG_DIR="$HOME/work/BDR-670/.pgenv"
-#	    local versiondir version bindir datadir
-#	    for versiondir in $PG_DIR/data/*
-#	    do
-#	        version=${versiondir##*/}
-#	        bindir="$PG_DIR/versions/$version/bin"
-#	        for datadir in $versiondir/*
-#	        do
-#	            if [ -d "$bindir" ]; then
-#	                "$bindir/pg_ctl" -D "$datadir" status | grep PID | sed -n "/pg_ctl:/s//$version: PostgreSQL $($bindir/pg_ctl --version | awk '{print $3}'):/p"
-#	            else
-#	                echo  "WARNING: datadir $datadir without corresponding executables in $bindir"
-#	            fi
-#	        done
-#	    done
-#	}
+
 _pgenv_hook() {
     if [[ -n "$PG_VERSION" ]]
     then
@@ -65,23 +48,6 @@ pgworkon() {
         unset PG_OLD_PATH
     fi
     unset PGSRC PGDATA PGHOST PGDATABASE PGUSER PGPORT PG_BRANCH PG_VERSION PG_WORKON
-
-    # command the instance  directly when using pgworkon
-    # e.g., "pgworkon 13 reinit"
-    # if [ -n "$2" ]
-    # then
-    #     (
-    #         pgworkon "$1"
-    #         shift
-    #         # alias the pg* functions to a more intuitive name
-    #         stop(){ pgstop "$@";}
-    #         start(){ pgstart "$@";}
-    #         restart(){ pgrestart "$@";}
-    #         reinit(){ pgreinit "$@";}
-    #         "$@"
-    #     )
-    #     return
-    # fi
 
     usage() {
         [ -n "$1" ] && echo "$1" 1>&2
