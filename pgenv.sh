@@ -239,21 +239,42 @@ EOF
     }
 
     pgstop() {
-        if pg_ctl status &> /dev/null
+        if [ -n "$1" ]
         then
-            pg_ctl stop -m fast
+            if pg_ctl status -D tmp_check/t_*$1_data/pgdata &> /dev/null
+            then
+                pg_ctl stop -m fast -D tmp_check/t_*$1_data/pgdata
+            else
+                echo "test PostgreSQL instance \"$1\" is already stopped"
+            fi
         else
-            echo "PostgreSQL $PG_VERSION ($PG_BRANCH) is already stopped"
+            if pg_ctl status &> /dev/null
+            then
+                pg_ctl stop -m fast
+            else
+                echo "PostgreSQL $PG_VERSION ($PG_BRANCH) is already stopped"
+            fi
         fi
     }
 
     pgstart() {
-        if ! pg_ctl status &> /dev/null
+        if [ -n "$1" ]
         then
-            pg_ctl -w -l /tmp/pgsql-$PG_BRANCH.log start
+            if ! pg_ctl status -D tmp_check/t_*$1_data/pgdata &> /dev/null
+            then
+                pg_ctl -w -l tmp_check/log/*$1*.log -D tmp_check/t_*$1_data/pgdata start
+            else
+                echo "test PostgreSQL instance \"$1\" is already started"
+            fi
         else
-            echo "PostgreSQL $PG_VERSION ($PG_BRANCH) is already started"
+            if ! pg_ctl status &> /dev/null
+            then
+                pg_ctl -w -l /tmp/pgsql-$PG_BRANCH-$PG_WORKON.log start
+            else
+                echo "PostgreSQL $PG_VERSION ($PG_BRANCH) is already started"
+            fi
         fi
+
     }
 
     pgrestart() {
