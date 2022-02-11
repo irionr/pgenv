@@ -34,8 +34,8 @@ do
 
     rm -fr $a/DemoInstall "$instdir"
     pushd $a
-    make
-    make install
+    make -j
+    make -j install
     make -C contrib
     make -C contrib install
     # return in the $BASE_DIR and remain there
