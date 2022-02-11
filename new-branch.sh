@@ -35,6 +35,11 @@ case "$1" in
     VER=${1#362q}
     MASTER=2QREL_${1#362q}_STABLE_3_6
     ;;
+  42q1*) # PGE compatible with bdr 4
+    BRANCH=2QREL_${1#42q}_STABLE_dev
+    VER=${1#42q}
+    MASTER=2QREL_${1#42q}_STABLE_dev
+    ;;
   # EDB Advance Server
   EDBAS-master)
     BRANCH=EDBAS-master

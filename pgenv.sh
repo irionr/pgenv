@@ -10,6 +10,9 @@ _pgenv_hook() {
 			if [[ "$BASE_BRANCH" = master ]]
 			then
 				echo -n "{m2Q$PG_VERSION}"
+            elif [[ "$BASE_BRANCH" = REL4_0_STABLE ]]
+            then
+                echo -n "{42Q$PG_VERSION}"
 			else
 				echo -n "{3.72Q$PG_VERSION}"
 			fi
@@ -72,11 +75,17 @@ pgworkon() {
         BASE_BRANCH="REL3_7_STABLE"
         ;;
       # PGE (2QPG)
-      m2q1*) # PGE compatible with bdr master (4.0)
+      m2q1*) # PGE compatible with bdr master
         PG_VERSION="${1#m2q}"
         PG_BRANCH="2QREL_${PG_VERSION}_STABLE_dev"
         BASE_BRANCH="master"
         BASE_PORT=6400
+        ;;
+      42q1*) # PGE compatible with bdr 4.0
+        PG_VERSION="${1#42q}"
+        PG_BRANCH="2QREL_${PG_VERSION}_STABLE_dev"
+        BASE_BRANCH="REL4_0_STABLE"
+        BASE_PORT=6900
         ;;
       372q1*) # PGE compatible with bdr 3.7
         PG_VERSION="${1#372q}"
