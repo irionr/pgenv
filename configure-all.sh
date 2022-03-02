@@ -26,7 +26,7 @@ then
 fi
 
 ARGS+=" --with-tcl --with-libxml --with-openssl"
-DEBUG_ARGS="--enable-depend --enable-cassert --enable-debug"
+DEBUG_ARGS="--enable-depend --enable-cassert --enable-debug "
 ### unused args
 # --enable-coverage
 
@@ -78,8 +78,8 @@ do
 
     instdir="$BASE_DIR/.pgenv/versions/$a"
     pushd $a
-    echo "Running configure with the following arguments: --prefix=$instdir ${DEBUG_ARGS} ${ARGS} CFLAGS=$CFLAGS"
-    ./configure --prefix="$instdir" ${DEBUG_ARGS} ${ARGS} CFLAGS="$CFLAGS"
+    echo "Running configure with the following arguments: --prefix=$instdir ${DEBUG_ARGS} ${ARGS} CFLAGS=$CFLAGS" CPPFLAGS=$CPPFLAGS
+    ./configure --prefix="$instdir" ${DEBUG_ARGS} ${ARGS} CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS"
     # return in the $BASE_DIR and remain there
     popd
 done
