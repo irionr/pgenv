@@ -1,4 +1,4 @@
-
+#!/bin/zsh
 _pgenv_hook() {
     if [[ -n "$PG_VERSION" ]]
     then
@@ -153,7 +153,8 @@ pgworkon() {
             $SOURCE_DIR/configure-all.sh $1 $2
             $SOURCE_DIR/install-all.sh $1 $2
         fi
-        cd $BASE_DIR/
+        cd $BASE_DIR/bdr
+		echo -ne "\e]1;${1} - ${2}\a"
     else
         local BASE_DIR="$SOURCE_DIR"
         local PG_DIR="$SOURCE_DIR/.pgenv"
