@@ -158,6 +158,12 @@ pgworkon() {
     else
         local BASE_DIR="$SOURCE_DIR"
         local PG_DIR="$SOURCE_DIR/.pgenv"
+        if [ ! -d "$BASE_DIR/$PG_BRANCH" ]
+        then
+            $SOURCE_DIR/new-branch.sh $1
+            $SOURCE_DIR/configure-all.sh $1
+            $SOURCE_DIR/install-all.sh $1
+        fi
     fi
 
     local DIR="$SOURCE_DIR/$PG_BRANCH"
