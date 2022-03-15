@@ -54,7 +54,7 @@ case "$1" in
   BDRPG1*)
     BRANCH=BDRPG_${1#BDRPG}_STABLE
     VER=${1#BDRPG}
-    MASTER=BDRPG-master
+    MASTER=BDRPG_${1#BDRPG}_STABLE
     ;;
   *)
     BRANCH="REL${1/./_}_STABLE"
