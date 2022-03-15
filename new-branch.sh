@@ -84,7 +84,6 @@ else
 	    exit 0
 	fi
 	pushd $SOURCE_DIR/$MASTER
-	git worktree add $TARGET_DIR/$BRANCH $BRANCH ||
-	    git worktree add -b dev/$2 $TARGET_DIR/$BRANCH
+	git worktree add $TARGET_DIR/$BRANCH $BRANCH
 	popd
 fi
