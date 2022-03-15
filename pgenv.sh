@@ -259,7 +259,7 @@ EOF
         then
             if pg_ctl status -D tmp_check/t_*$1_data/pgdata &> /dev/null
             then
-                pg_ctl stop -m fast -D tmp_check/t_*$1_data/pgdata
+                pg_ctl stop -m fast -D tmp_check/t_*$1_data/pgdata $2
             else
                 echo "test PostgreSQL instance \"$1\" is already stopped"
             fi
