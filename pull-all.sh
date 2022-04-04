@@ -11,7 +11,7 @@ do
     popd
 done
 
-for a in $(ls -rd *REL*) EDBAS-master BDRPG-master
+for a in $(ls -rd *STABLE) EDBAS-master BDRPG-master
 do
     pushd $a
     git fetch --all -p
