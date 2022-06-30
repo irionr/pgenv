@@ -118,6 +118,12 @@ pgworkon() {
         BASE_BRANCH="master"
         BASE_PORT=11400
         ;;
+      BDRPG-master)
+        PG_VERSION=15
+        PG_BRANCH="BDRPG-master"
+        BASE_BRANCH="master"
+        BASE_PORT=12400
+        ;;
       *)
         PG_VERSION="$1"
         PG_BRANCH="REL${1/./_}_STABLE"

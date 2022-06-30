@@ -43,7 +43,7 @@ case "$1" in
   # EDB Advance Server
   EDBAS-master)
     BRANCH=EDBAS-master
-    VER=14
+    VER=15
     MASTER=EDBAS-master
     ;;
   EDB1*)
@@ -51,10 +51,15 @@ case "$1" in
     VER=${1#EDB}
     MASTER=EDBAS-master
     ;;
+  BDRPG-master)
+    BRANCH=BDRPG-master
+    VER=15
+    MASTER=BDRPG-master
+    ;;
   BDRPG1*)
     BRANCH=BDRPG_${1#BDRPG}_STABLE
     VER=${1#BDRPG}
-    MASTER=BDRPG_${1#BDRPG}_STABLE
+    MASTER=BDRPG-master
     ;;
   *)
     BRANCH="REL${1/./_}_STABLE"
