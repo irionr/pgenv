@@ -24,10 +24,15 @@ Reload the current shell
 
 Initial postgresql checkout
 
-    git clone git://git.postgresql.org/git/postgresql.git $HOME/pgsql/PG-master
+    git clone git://git.postgresql.org/git/postgresql.git $HOME/pgsql/master
 
 > **NOTE:** Optionaly, you can use also 2QPG or EDBAS, clone the repositories in the
 > $HOME/pgsql/2QPG-master or $HOME/pgsql/EDBAS-master respectivley.
+
+
+On Rocky linux, required packages:
+
+	sudo dnf install readline-devel openssl-devel libxml2-devel tcl-devel bison flex libcurl-devel 
 
 In Ubuntu, install these packages, which are necessary for configure-all.sh
 
