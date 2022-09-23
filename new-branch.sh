@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e
 SOURCE_DIR="$HOME/pgsql"
 TARGET_DIR="$HOME/pgsql"
 
@@ -81,7 +81,7 @@ then
 	DEVBRANCH="dev/$2"
 	pushd $SOURCE_DIR/$MASTER
 	git worktree add $TARGET_DIR/$BRANCH $DEVBRANCH ||
-    	git worktree add -b $DEVBRANCH $TARGET_DIR/$BRANCH
+		git worktree add -b $DEVBRANCH $TARGET_DIR/$BRANCH $BRANCH
 	popd
 else
 	if [ -d "$TARGET_DIR/$BRANCH" ]; then
