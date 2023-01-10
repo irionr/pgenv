@@ -1,5 +1,9 @@
 #!/bin/bash
 set -e
+
+# Set the current PostgreSQL development branch
+CURRENT_DEVEL=16
+
 SOURCE_DIR="$HOME/pgsql"
 TARGET_DIR="$HOME/pgsql"
 
@@ -11,7 +15,7 @@ case "$1" in
   # community
   master)
     BRANCH=master
-    VER=15
+    VER=$CURRENT_DEVEL
     MASTER=master
     ;;
   1*)
@@ -33,7 +37,7 @@ case "$1" in
   362q1*) # PGE compatible with bdr 3.6
     BRANCH=2QREL_${1#362q}_STABLE_3_6
     VER=${1#362q}
-    MASTER=2QREL_${1#362q}_STABLE_3_6
+    MASTER=2QPG-master
     ;;
   42q1*) # PGE compatible with bdr 4
     BRANCH=2QREL_${1#42q}_STABLE_dev
@@ -43,7 +47,7 @@ case "$1" in
   # EDB Advance Server
   EDBAS-master)
     BRANCH=EDBAS-master
-    VER=15
+    VER=$CURRENT_DEVEL
     MASTER=EDBAS-master
     ;;
   EDB1*)
@@ -53,7 +57,7 @@ case "$1" in
     ;;
   BDRPG-master)
     BRANCH=BDRPG-master
-    VER=15
+    VER=$CURRENT_DEVEL
     MASTER=BDRPG-master
     ;;
   BDRPG1*)

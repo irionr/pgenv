@@ -101,7 +101,7 @@ pgworkon() {
         ;;
       # EDB Advance Server
       EDBAS-master)
-        PG_VERSION=14
+        PG_VERSION=$CURRENT_DEVEL
         PG_BRANCH="EDBAS-master"
         BASE_BRANCH="REL3_7_STABLE"
         BASE_PORT=9400
@@ -119,7 +119,7 @@ pgworkon() {
         BASE_PORT=11400
         ;;
       BDRPG-master)
-        PG_VERSION=15
+        PG_VERSION=$CURRENT_DEVEL
         PG_BRANCH="BDRPG-master"
         BASE_BRANCH="master"
         BASE_PORT=12400
