@@ -3,8 +3,7 @@
 set -e
 trap 'echo ERROR: installing $a FAILED!' ERR
 
-if [ -n "$2" ];
-then
+if [ -n "$2" ]; then
     BASE_DIR="$HOME/work/$2/"
 else
     BASE_DIR="$HOME/pgsql"
@@ -12,8 +11,7 @@ fi
 
 pushd $BASE_DIR
 
-for a in $(ls -rd *master) $(ls -rd *STABLE*) $(ls -rd pgl*) bdr
-do
+for a in $(ls -rd *master) $(ls -rd *STABLE*) $(ls -rd pgl*) bdr; do
     # if the directory doesn't exist skip it
     [ -d $a ] || continue
 

@@ -1,7 +1,6 @@
 #!/bin/bash
 
-for a in pglogical bdr master $(ls -rd *REL*)
-do
+for a in pglogical bdr master $(ls -rd *REL*); do
     # if the directory doesn't exist skip it
     [ -d $a ] || continue
 
