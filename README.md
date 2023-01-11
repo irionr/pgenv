@@ -26,7 +26,7 @@ Initial postgresql checkout
 
     git clone git://git.postgresql.org/git/postgresql.git $HOME/pgsql/master
 
-> **NOTE:** Optionaly, you can use also 2QPG or EDBAS, clone the repositories in the
+> **NOTE:** Optionaly, you can use also PGE or EPAS, clone the repositories in the
 > $HOME/pgsql/2QPG-master or $HOME/pgsql/EDBAS-master respectivley.
 
 
@@ -58,10 +58,9 @@ Build and install the development head version
 
 Add a $VERSION checkout (e.g. 9.4, 9.3, etc...)
 
-To use 2ndQuadrant PG with 3.6 BDR/PGL stack use the 362q prefix(e.g. 362q10, 362q11...)
-To use 2ndQuadrant PG with 3.7 BDR/PGL stack use the 372q prefix(e.g. 372q11, 372q12...)
-To use 2ndQuadrant PG with 4.0(master) BDR/PGL stack use the m2q prefix(e.g. m2q11, m2q12...)
-For EDBAS use "EDB" prefix (e.g. EDB12, EDB13...)
+To use PGE with 3.6 BDR/PGL stack use the 36PGE prefix(e.g. 36PGE10, 36PGE11...)
+To use PGE with BDR/PGL version 3.7 or later use only the PGE prefix(e.g. PGE11, PGE14...)
+For EDBAS use "EPAS" prefix (e.g. EPAS12, EPAS15...)
 
     cd ~/pgsql
     ./new-branch.sh $VERSION
@@ -94,13 +93,26 @@ Upgrade only one version (numeric version or master)
 
 ### pgworkon
 
-*Usage: pgworkon VERSION [ticket number]*
+*Usage: pgworkon {FLAVOR}{VERSION} [[{ticket number}] [{BDR version}]]
 
-set the environment to use the specific version, if a *ticket number* is specified, then create a working directory in the "$HOME/work" by using git worktrees for the selected postgres, pglogical and bdr versions.
-For pglogical and bdr you need to have the repositories locally and set the environment variables "$PGL_REPO" and "$BDR_REPO" to the respective paths.
+There are 4 Postgres flavors that can be used + 1 for the
+almost EOL BDR3.6, with the first argument:
+    PG*
+    PGE*
+    3.6PGE*
+    EPAS*
+    BDRPG*
+The second (optional) argument is the JIRA number (or any other
+traking number), it creates a work directory with this name.
+The third  (optional) argument is the extension version (BDR/PGL)
 
-For example *pgworkon m2q13 BDR-100* will create a BDR-100 directory with 2QPG13 checkout on the 2QREL_13_STABLE_dev branch.
-And it will also create pgl and bdr directories checked out on the new "dev/BDR-100" branch pointing to latest master.
+e.g.
+
+`pgworkon PGE14 BDR-42 4`
+
+This command will create a worktree in the `$HOME/work` directory
+named `BDR-42` that will use Postgres Extended v14 and BDR v4.
+
 
 ### pgreinit
 

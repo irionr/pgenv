@@ -2,38 +2,31 @@
 _pgenv_hook() {
     if [[ -n "$PG_VERSION" ]]
     then
-		if [[ "$PG_BRANCH" = dev ]]
-		then
-		    echo -n "{pgDEV} "
-		elif [[ "$PG_BRANCH" =~ _dev$ ]]
-		then
-			if [[ "$BASE_BRANCH" = master ]]
-			then
-				echo -n "{m2Q$PG_VERSION}"
-            elif [[ "$BASE_BRANCH" = REL4_0_STABLE ]]
-            then
-                echo -n "{42Q$PG_VERSION}"
-			else
-				echo -n "{3.72Q$PG_VERSION}"
-			fi
-		elif [[ "$PG_BRANCH" =~ 3_6$ ]]
-		then
-		    echo -n "{3.62Q$PG_VERSION}"
-		elif [[ "$PG_BRANCH" =~ ^EDBAS ]]
-		then
-		    echo -n "{EDBAS$PG_VERSION}"
-		elif [[ "$PG_BRANCH" =~ ^BDRPG ]]
-		then
-		    echo -n "{BDRPG$PG_VERSION}"
-		else
-		    echo -n "{pg$PG_VERSION} "
-		fi
-    fi
-    if [[ -n "$PG_WORKON" ]]
-    then
-        echo -n  "{$PG_WORKON}"
+        case "$PG_BRANCH" in
+            PGE*)
+                echo -n "PGE$PG_VERSION"
+                ;;
+            EPAS*)
+                echo -n "EPAS$PG_VERSION"
+                ;;
+            BDRPG*)
+                echo -n "BDRPG$PG_VERSION"
+                ;;
+            *)
+                echo -n "PG$PG_VERSION"
+                ;;
+        esac
     fi
 
+    if [[ -n "$PG_WORKON" ]]
+    then
+        echo -n  "/$PG_WORKON"
+    fi
+
+    if [[ -n "$EXTENSION_BRANCH" ]]
+    then
+        echo -n  "/$EXTENSION_BRANCH"
+    fi
 }
 
 if ! [[ "$PROMPT_COMMAND" =~ _pgenv_hook ]]; then
@@ -50,7 +43,7 @@ pgworkon() {
         export PATH=$PG_OLD_PATH
         unset PG_OLD_PATH
     fi
-    unset PGSRC PGDATA PGHOST PGDATABASE PGUSER PGPORT PG_BRANCH PG_VERSION PG_WORKON
+    unset PGSRC PGDATA PGHOST PGDATABASE PGUSER PGPORT PG_BRANCH PG_VERSION PG_WORKON EXTENSION_BRANCH PG_TEST_PORT_DIR
 
     usage() {
         [ -n "$1" ] && echo "$1" 1>&2
@@ -67,67 +60,73 @@ pgworkon() {
       master|$CURRENT_DEVEL)
         PG_VERSION=$CURRENT_DEVEL
         PG_BRANCH=master
-        BASE_BRANCH="REL3_7_STABLE"
         ;;
       1*)
         PG_VERSION="$1"
         PG_BRANCH="REL_${1}_STABLE"
-        BASE_BRANCH="REL3_7_STABLE"
         ;;
       # PGE (2QPG)
-      m2q1*) # PGE compatible with bdr master
-        PG_VERSION="${1#m2q}"
+      PGE) # PGE compatible with bdr master
+        PG_VERSION=$CURRENT_DEVEL
+        PG_BRANCH="BDRPG-master"
+        BASE_PORT=12400
+        ;;
+      PGE1*)
+        PG_VERSION="${1#PGE}"
         PG_BRANCH="2QREL_${PG_VERSION}_STABLE_dev"
-        BASE_BRANCH="master"
         BASE_PORT=6400
         ;;
-      42q1*) # PGE compatible with bdr 4.0
-        PG_VERSION="${1#42q}"
-        PG_BRANCH="2QREL_${PG_VERSION}_STABLE_dev"
-        BASE_BRANCH="REL4_0_STABLE"
-        BASE_PORT=6900
-        ;;
-      372q1*) # PGE compatible with bdr 3.7
-        PG_VERSION="${1#372q}"
-        PG_BRANCH="2QREL_${PG_VERSION}_STABLE_dev"
-        BASE_BRANCH="REL3_7_STABLE"
-        BASE_PORT=7400
-        ;;
-      362q1*) # PGE compatible with bdr 3.6
-        PG_VERSION="${1#362q}"
+      36PGE1*) # PGE compatible with bdr 3.6
+        PG_VERSION="${1#36PGE}"
         PG_BRANCH="2QREL_${PG_VERSION}_STABLE_3_6"
-        BASE_BRANCH="REL3_6_STABLE"
         BASE_PORT=8400
         ;;
       # EDB Advance Server
-      EDBAS-master)
+      EPAS)
         PG_VERSION=$CURRENT_DEVEL
         PG_BRANCH="EDBAS-master"
-        BASE_BRANCH="REL3_7_STABLE"
         BASE_PORT=9400
         ;;
-      EDB1*)
-        PG_VERSION="${1#EDB}"
+      EPAS1*)
+        PG_VERSION="${1#EPAS}"
         PG_BRANCH="EDBAS_${PG_VERSION}_STABLE"
-        BASE_BRANCH="REL3_7_STABLE"
         BASE_PORT=10400
+        ;;
+      # BDRPG (internal PG with BDR related changes)
+        BDRPG)
+        PG_VERSION=$CURRENT_DEVEL
+        PG_BRANCH="BDRPG-master"
+        BASE_PORT=12400
         ;;
       BDRPG1*)
         PG_VERSION="${1#BDRPG}"
         PG_BRANCH="BDRPG_${PG_VERSION}_STABLE"
-        BASE_BRANCH="master"
         BASE_PORT=11400
-        ;;
-      BDRPG-master)
-        PG_VERSION=$CURRENT_DEVEL
-        PG_BRANCH="BDRPG-master"
-        BASE_BRANCH="master"
-        BASE_PORT=12400
         ;;
       *)
         PG_VERSION="$1"
         PG_BRANCH="REL${1/./_}_STABLE"
-        BASE_BRANCH="REL3_7_STABLE"
+        ;;
+    esac
+
+    case "$3" in
+      "")
+        EXTENSION_BRANCH="master"
+        ;;
+      master|6)
+        EXTENSION_BRANCH="master"
+        ;;
+      5)
+        EXTENSION_BRANCH="REL_5_STABLE"
+        ;;
+      4)
+        EXTENSION_BRANCH="REL_4_STABLE"
+        ;;
+      3.7)
+        EXTENSION_BRANCH="REL3_7_STABLE"
+        ;;
+      3.6)
+        EXTENSION_BRANCH="REL3_6_STABLE"
         ;;
     esac
 
@@ -149,11 +148,11 @@ pgworkon() {
         then
             # create a new dev branch or checkout if exists
             pushd $PGL_REPO
-            git worktree add -b dev/$2 $BASE_DIR/pgl $BASE_BRANCH ||
+            git worktree add -b dev/$2 $BASE_DIR/pgl $EXTENSION_BRANCH ||
 				git worktree add  $BASE_DIR/pgl dev/$2
             popd
             pushd $BDR_REPO
-            git worktree add -b dev/$2 $BASE_DIR/bdr $BASE_BRANCH ||
+            git worktree add -b dev/$2 $BASE_DIR/bdr $EXTENSION_BRANCH ||
 				git worktree add  $BASE_DIR/bdr dev/$2
             popd
             $SOURCE_DIR/new-branch.sh $1 $2
@@ -194,8 +193,10 @@ pgworkon() {
     export PGHOST=/tmp
 
     if which dpkg-architecture > /dev/null; then
-        # No undo action on pgdeactivate. Having libreadline preloaded
-        # shouldn't be of any harm
+        """
+        No undo action on pgdeactivate. Having libreadline preloaded
+        shouldn't be of any harm
+        """
         if ! [[ "$LD_PRELOAD" =~ 'libreadline.so' ]]
         then
             export LD_PRELOAD=/lib/$(dpkg-architecture -qDEB_BUILD_GNU_TYPE)/libreadline.so.6:$LD_PRELOAD
@@ -310,7 +311,7 @@ EOF
             export PATH=$PG_OLD_PATH
             unset PG_OLD_PATH
         fi
-        unset PGSRC PGDATA PGHOST PGDATABASE PGUSER PGPORT PG_BRANCH PG_VERSION PG_WORKON
+        unset PGSRC PGDATA PGHOST PGDATABASE PGUSER PGPORT PG_BRANCH PG_VERSION PG_WORKON EXTENSION_BRANCH PG_TEST_PORT_DIR
         unset pgdeactivate pgreinit pgstop pgstart pgrestart
     }
 

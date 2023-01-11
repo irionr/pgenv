@@ -13,7 +13,7 @@ case "$1" in
     exit 1
     ;;
   # community
-  master)
+  master|$CURRENT_DEVEL)
     BRANCH=master
     VER=$CURRENT_DEVEL
     MASTER=master
@@ -24,38 +24,29 @@ case "$1" in
     MASTER=master
     ;;
   # PGE (2QPG)
-  m2q1*) # PGE compatible with bdr master (4.0)
-    BRANCH=2QREL_${1#m2q}_STABLE_dev
-    VER={1#m2q}
+  PGE1*)
+    BRANCH=2QREL_${1#PGE}_STABLE_dev
+    VER={1#PGE}
     MASTER=2QPG-master
     ;;
-  372q1*) # PGE compatible with bdr 3.7
-    BRANCH=2QREL_${1#372q}_STABLE_dev
-    VER=${1#372q}
+  36PGE1*) # PGE compatible with bdr 3.6
+    BRANCH=2QREL_${1#36PGE}_STABLE_3_6
+    VER=${1#36PGE}
     MASTER=2QPG-master
-    ;;
-  362q1*) # PGE compatible with bdr 3.6
-    BRANCH=2QREL_${1#362q}_STABLE_3_6
-    VER=${1#362q}
-    MASTER=2QPG-master
-    ;;
-  42q1*) # PGE compatible with bdr 4
-    BRANCH=2QREL_${1#42q}_STABLE_dev
-    VER=${1#42q}
-    MASTER=2QREL_${1#42q}_STABLE_dev
     ;;
   # EDB Advance Server
-  EDBAS-master)
+  EPAS)
     BRANCH=EDBAS-master
     VER=$CURRENT_DEVEL
     MASTER=EDBAS-master
     ;;
-  EDB1*)
-    BRANCH=EDBAS_${1#EDB}_STABLE
-    VER=${1#EDB}
+  EPAS1*)
+    BRANCH=EDBAS_${1#EPAS}_STABLE
+    VER=${1#EPAS}
     MASTER=EDBAS-master
     ;;
-  BDRPG-master)
+  # BDRPG (internal PG with BDR related changes)
+  BDRPG)
     BRANCH=BDRPG-master
     VER=$CURRENT_DEVEL
     MASTER=BDRPG-master
