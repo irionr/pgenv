@@ -35,14 +35,14 @@ PGE1*)
   MASTER=2QPG-master
   ;;
 # EDB Advance Server
-EPAS)
+EDBAS)
   BRANCH=EDBAS-master
   VER=$CURRENT_DEVEL
   MASTER=EDBAS-master
   ;;
-EPAS1*)
-  BRANCH=EDBAS_${1#EPAS}_STABLE
-  VER=${1#EPAS}
+EDBAS1*)
+  BRANCH=EDBAS_${1#EDBAS}_STABLE
+  VER=${1#EDBAS}
   MASTER=EDBAS-master
   ;;
 # BDRPG (internal PG with BDR related changes)

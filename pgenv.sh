@@ -2,11 +2,11 @@
 _pgenv_hook() {
     if [[ -n "$PG_VERSION" ]]; then
         case "$PG_BRANCH" in
-        PGE*)
+        2QREL*)
             echo -n "PGE$PG_VERSION"
             ;;
-        EPAS*)
-            echo -n "EPAS$PG_VERSION"
+        EDBAS*)
+            echo -n "EDBAS$PG_VERSION"
             ;;
         BDRPG*)
             echo -n "BDRPG$PG_VERSION"
@@ -107,9 +107,6 @@ pgworkon() {
     esac
 
     case "$3" in
-    "")
-        EXTENSION_BRANCH="master"
-        ;;
     master | 6)
         EXTENSION_BRANCH="master"
         ;;

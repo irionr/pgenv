@@ -22,7 +22,7 @@ for a in $(ls -rd *master) $(ls -rd *STABLE*) $(ls -rd pgl*) bdr; do
         [ "REL_${1}_STABLE" != "$a" ] &&
         [ "2QREL_${1#36PGE}_STABLE_3_6" != "$a" ] &&
         [ "2QREL_${1#PGE}_STABLE_dev" != "$a" ] &&
-        [ "EDBAS_${1#EPAS}_STABLE" != "$a" ] &&
+        [ "EDBAS_${1#EDBAS}_STABLE" != "$a" ] &&
         [ "BDRPG_${1#BDRPG}_STABLE" != "$a" ] &&
         continue
 
