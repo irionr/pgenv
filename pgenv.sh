@@ -45,7 +45,7 @@ pgworkon() {
     usage() {
         [ -n "$1" ] && echo "$1" 1>&2
         echo 1>&2
-        echo "usage: $0 pg_version [command]" 1>&2
+        echo "$0: pgworkon <flavor><version> [<JIRA> [<BDR base branch>]] " 1>&2
     }
 
     case "$1" in
