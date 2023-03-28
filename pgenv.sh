@@ -79,13 +79,13 @@ pgworkon() {
         BASE_PORT=8400
         ;;
     # EDB Advance Server
-    EPAS)
+    EDBAS)
         PG_VERSION=$CURRENT_DEVEL
         PG_BRANCH="EDBAS-master"
         BASE_PORT=9400
         ;;
-    EPAS1*)
-        PG_VERSION="${1#EPAS}"
+    EDBAS1*)
+        PG_VERSION="${1#EDBAS}"
         PG_BRANCH="EDBAS_${PG_VERSION}_STABLE"
         BASE_PORT=10400
         ;;
