@@ -26,7 +26,7 @@ Initial postgresql checkout
 
     git clone git://git.postgresql.org/git/postgresql.git $HOME/pgsql/master
 
-> **NOTE:** Optionaly, you can use also PGE or EPAS, clone the repositories in the
+> **NOTE:** Optionaly, you can use also PGE or EDBAS, clone the repositories in the
 > $HOME/pgsql/2QPG-master or $HOME/pgsql/EDBAS-master respectivley.
 
 
@@ -60,7 +60,15 @@ Add a $VERSION checkout (e.g. 9.4, 9.3, etc...)
 
 To use PGE with 3.6 BDR/PGL stack use the 36PGE prefix(e.g. 36PGE10, 36PGE11...)
 To use PGE with BDR/PGL version 3.7 or later use only the PGE prefix(e.g. PGE11, PGE14...)
-For EDBAS use "EPAS" prefix (e.g. EPAS12, EPAS15...)
+For EDBAS use "EDBAS" prefix (e.g. EDBAS12, EDBAS15...)
+
+Optionally set bdr and pglogical environment variables pointing to your
+clone of the bdr and pglogical repository.
+Add the following lines to `~/.bashrc`
+
+	# github private repos
+    export PGL_REPO="/Users/firion/pgsql/pglogical"
+    export BDR_REPO="/Users/firion/pgsql/bdr"
 
     cd ~/pgsql
     ./new-branch.sh $VERSION
@@ -100,7 +108,7 @@ almost EOL BDR3.6, with the first argument:
     PG*
     PGE*
     3.6PGE*
-    EPAS*
+    EDBAS*
     BDRPG*
 The second (optional) argument is the JIRA number (or any other
 traking number), it creates a work directory with this name.
