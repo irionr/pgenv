@@ -66,12 +66,12 @@ pgworkon() {
     PGE) # PGE compatible with bdr master
         PG_VERSION=$CURRENT_DEVEL
         PG_BRANCH="BDRPG-master"
-        BASE_PORT=12400
+        BASE_PORT=6400
         ;;
     PGE1*)
         PG_VERSION="${1#PGE}"
         PG_BRANCH="2QREL_${PG_VERSION}_STABLE_dev"
-        BASE_PORT=6400
+        BASE_PORT=7400
         ;;
     36PGE1*) # PGE compatible with bdr 3.6
         PG_VERSION="${1#36PGE}"
@@ -93,12 +93,12 @@ pgworkon() {
     BDRPG)
         PG_VERSION=$CURRENT_DEVEL
         PG_BRANCH="BDRPG-master"
-        BASE_PORT=12400
+        BASE_PORT=11400
         ;;
     BDRPG1*)
         PG_VERSION="${1#BDRPG}"
         PG_BRANCH="BDRPG_${PG_VERSION}_STABLE"
-        BASE_PORT=11400
+        BASE_PORT=12400
         ;;
     *)
         PG_VERSION="$1"
