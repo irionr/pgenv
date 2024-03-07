@@ -17,12 +17,11 @@ elif which brew >/dev/null; then
         LIBS+="$prefix/lib"
         export PATH="$prefix/bin:$PATH"
     done
-    ARGS+=" --with-tclconfig=/usr/local/opt/tcl-tk/lib"
     ARGS+=" --with-includes=$INCLUDES"
     ARGS+=" --with-libraries=$LIBS"
 fi
 
-ARGS+=" --with-tcl --with-libxml --with-openssl"
+ARGS+=" --with-libxml --with-openssl"
 DEBUG_ARGS="--enable-depend --enable-cassert --enable-debug "
 ### unused args
 # --enable-coverage
