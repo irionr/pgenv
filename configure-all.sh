@@ -31,7 +31,7 @@ if [ -n "$(perldoc -lm IPC::Run)" ]; then
     DEBUG_ARGS+=" --with-perl --enable-tap-tests"
 fi
 
-CFLAGS=" -Wall -Wextra -Wuninitialized -Wint-conversion -Wno-unused-parameter -Wno-sign-compare  -ggdb -Og -g3 -fno-omit-frame-pointer -Wno-missing-field-initializers -Wshadow"
+CFLAGS=" -Wall -Wextra -Wuninitialized -Wint-conversion -Wno-unused-parameter -Wno-sign-compare  -ggdb -Og -g3 -fno-omit-frame-pointer -Wno-missing-field-initializers -Wshadow -DUSE_VALGRIND"
 
 # openSUSE and SUSE have tclConfig.sh in /usr/lib64 for x86_64 machines
 if [ -f "/etc/SuSE-release" ] && [ "$(uname -m)" == 'x86_64' ]; then
