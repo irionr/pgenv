@@ -292,5 +292,27 @@ EOF
         unset pgdeactivate pgreinit pgstop pgstart pgrestart
     }
 
+    pgpsql() {
+        # This function accepts two arguments.
+        # the first argument is the `name` of the node we want to connect
+        # the second is to specify the `database`, if it's not supplied
+        # then it will default to "bdrtest"
+
+        if [ -f "tmp_check/data/postmaster.pid" ]; then
+            echo "### Using regression instance ####"
+            local POSTMASTER=tmp_check/data/postmaster.pid
+            local TESTDB=${1:-''}
+        else
+            echo "#### Using TAP instance ####"
+            local POSTMASTER=(tmp_check/t_*"${1}"_data*/pgdata/postmaster.pid)
+            local TESTDB=${2:-"bdrtest"}
+        fi
+
+        local TESTPORT=$(awk '{if (FNR == 4) {print $0}}' "${POSTMASTER}")
+        local TESTHOST=$(awk '{if (FNR == 5) {print $0}}' "${POSTMASTER}")
+
+        psql -h $TESTHOST -p $TESTPORT -U $USER $TESTDB
+    }
+
     unset usage
 }
