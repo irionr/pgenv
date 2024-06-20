@@ -134,7 +134,7 @@ pgworkon() {
         JIRA="${2#BDR-}"
         local BASE_DIR="$HOME/work/$2"
         local PG_DIR="$BASE_DIR/.pgenv"
-        PG_TEST_PORT_DIR="$BASE_DIR/bdr/tmp_check/"
+        PG_TEST_PORT_DIR="tmp_check"
 
         if [ ! -d "$BASE_DIR" ]; then
             # create a new dev branch or checkout if exists
@@ -155,7 +155,7 @@ pgworkon() {
     else
         local BASE_DIR="$SOURCE_DIR"
         local PG_DIR="$SOURCE_DIR/.pgenv"
-        PG_TEST_PORT_DIR="$BASE_DIR/bdr/tmp_check/"
+        PG_TEST_PORT_DIR="tmp_check"
         if [ ! -d "$BASE_DIR/$PG_BRANCH" ]; then
             $SOURCE_DIR/new-branch.sh $1
             $SOURCE_DIR/configure-all.sh $1
