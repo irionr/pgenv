@@ -2,7 +2,7 @@
 set -e
 
 # Set the current PostgreSQL development branch
-CURRENT_DEVEL=17
+CURRENT_DEVEL=18
 
 SOURCE_DIR="$HOME/pgsql"
 TARGET_DIR="$HOME/pgsql"
@@ -12,8 +12,7 @@ case "$1" in
   echo "ERROR: missing argument" >&2
   exit 1
   ;;
-# community
-master | $CURRENT_DEVEL)
+master | ${CURRENT_DEVEL})
   BRANCH=master
   VER=$CURRENT_DEVEL
   MASTER=master
@@ -23,18 +22,16 @@ master | $CURRENT_DEVEL)
   VER="$1"
   MASTER=master
   ;;
-# PGE (2QPG)
 PGE1*)
   BRANCH=2QREL_${1#PGE}_STABLE_dev
-  VER={1#PGE}
+  VER=${1#PGE}
   MASTER=2QPG-master
   ;;
-36PGE1*) # PGE compatible with bdr 3.6
+36PGE1*)
   BRANCH=2QREL_${1#36PGE}_STABLE_3_6
   VER=${1#36PGE}
   MASTER=2QPG-master
   ;;
-# EDB Advance Server
 EDBAS)
   BRANCH=EDBAS-master
   VER=$CURRENT_DEVEL
@@ -45,7 +42,6 @@ EDBAS1*)
   VER=${1#EDBAS}
   MASTER=EDBAS-master
   ;;
-# BDRPG (internal PG with BDR related changes)
 BDRPG)
   BRANCH=BDRPG-master
   VER=$CURRENT_DEVEL

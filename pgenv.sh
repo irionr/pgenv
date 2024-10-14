@@ -32,7 +32,7 @@ fi
 
 pgworkon() {
     local SOURCE_DIR="$HOME/pgsql"
-    local CURRENT_DEVEL=17
+    local CURRENT_DEVEL=18
     local BASE_PORT=5400
     local JIRA=0
     # clenup old env
@@ -53,7 +53,6 @@ pgworkon() {
         usage "ERROR: missing argument"
         return 1
         ;;
-    # community
     master | $CURRENT_DEVEL)
         PG_VERSION=$CURRENT_DEVEL
         PG_BRANCH=master
@@ -62,8 +61,7 @@ pgworkon() {
         PG_VERSION="$1"
         PG_BRANCH="REL_${1}_STABLE"
         ;;
-    # PGE (2QPG)
-    PGE) # PGE compatible with bdr master
+    PGE)
         PG_VERSION=$CURRENT_DEVEL
         PG_BRANCH="BDRPG-master"
         BASE_PORT=6400
@@ -73,12 +71,11 @@ pgworkon() {
         PG_BRANCH="2QREL_${PG_VERSION}_STABLE_dev"
         BASE_PORT=7400
         ;;
-    36PGE1*) # PGE compatible with bdr 3.6
+    36PGE1*)
         PG_VERSION="${1#36PGE}"
         PG_BRANCH="2QREL_${PG_VERSION}_STABLE_3_6"
         BASE_PORT=8400
         ;;
-    # EDB Advance Server
     EDBAS)
         PG_VERSION=$CURRENT_DEVEL
         PG_BRANCH="EDBAS-master"
@@ -89,7 +86,6 @@ pgworkon() {
         PG_BRANCH="EDBAS_${PG_VERSION}_STABLE"
         BASE_PORT=10400
         ;;
-    # BDRPG (internal PG with BDR related changes)
     BDRPG)
         PG_VERSION=$CURRENT_DEVEL
         PG_BRANCH="BDRPG-master"
