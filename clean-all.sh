@@ -18,6 +18,7 @@ for a in pglogical bdr $(ls -rd *master) $(ls -rd *STABLE*); do
     rm -fr "$HOME/.pgenv/versions/$a" "$HOME/.pgenv/data/$a/*"
     pushd $a
     git worktree prune
-    bear -- make -j12 clean distclean
+    make clean distclean
+    git clean -fdx
     popd
 done

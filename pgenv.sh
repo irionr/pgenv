@@ -103,8 +103,8 @@ pgworkon() {
     esac
 
     case "$3" in
-    master | 6)
-        EXTENSION_BRANCH="master"
+    6)
+        EXTENSION_BRANCH="REL_6_STABLE"
         ;;
     5)
         EXTENSION_BRANCH="REL_5_STABLE"
@@ -117,6 +117,9 @@ pgworkon() {
         ;;
     3.6)
         EXTENSION_BRANCH="REL3_6_STABLE"
+        ;;
+    "")
+        EXTENSION_BRANCH="REL_6_STABLE"
         ;;
     esac
 

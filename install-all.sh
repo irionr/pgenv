@@ -30,7 +30,7 @@ for a in $(ls -rd *master) $(ls -rd *STABLE*) $(ls -rd pgl*) bdr; do
 
     rm -fr $a/DemoInstall "$instdir"
     pushd $a
-    bear -- make -j12 clean all install
+    bear -- make -j && make -j install && bear -- make -C contrib && make -C contrib install
     # return in the $BASE_DIR and remain there
     popd
 done
