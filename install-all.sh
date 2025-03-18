@@ -11,7 +11,7 @@ fi
 
 pushd $BASE_DIR
 
-for a in $(ls -rd *master) $(ls -rd *STABLE*) $(ls -rd pgl*) bdr; do
+for a in $(ls -rd *STABLE*); do
     # if the directory doesn't exist skip it
     [ -d $a ] || continue
 
@@ -29,8 +29,11 @@ for a in $(ls -rd *master) $(ls -rd *STABLE*) $(ls -rd pgl*) bdr; do
     instdir="$BASE_DIR/.pgenv/versions/$a"
 
     rm -fr $a/DemoInstall "$instdir"
+	printf "\n\n\n\n"
     pushd $a
+	printf "Installing $a\n"
     bear -- make -j && make -j install && bear -- make -C contrib && make -C contrib install
     # return in the $BASE_DIR and remain there
     popd
+	printf "\n\n\n\n"
 done

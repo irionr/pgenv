@@ -50,7 +50,7 @@ fi
 
 pushd $BASE_DIR
 
-for a in $(ls -rd *master) $(ls -rd *STABLE*); do
+for a in $(ls -rd *STABLE*); do
     # if the directory doesn't exist skip it
     [ -d $a ] || continue
 
@@ -66,9 +66,11 @@ for a in $(ls -rd *master) $(ls -rd *STABLE*); do
         continue
 
     instdir="$BASE_DIR/.pgenv/versions/$a"
+	printf "\n\n\n\n"
     pushd $a
-    echo "Running configure with the following arguments: --prefix=$instdir ${DEBUG_ARGS} ${ARGS} CFLAGS=$CFLAGS" CPPFLAGS=$CPPFLAGS
-    ./configure --prefix="$instdir" ${DEBUG_ARGS} ${ARGS} CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS"
+    printf "Running configure with the following arguments: --prefix=$instdir ${DEBUG_ARGS} ${ARGS} CFLAGS=$CFLAGS CPPFLAGS=$CPPFLAGS\n"
+    #./configure --prefix="$instdir" ${DEBUG_ARGS} ${ARGS} CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS"
     # return in the $BASE_DIR and remain there
     popd
+	printf "\n\n\n\n"
 done
