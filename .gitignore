@@ -5,10 +5,6 @@ git-new-workdir
 EDBAS*/
 BDRPG*/
 docs/
-bdr/
-bdr3_7/
-bdr4/
-bdr5/
+bdr*/
 pgd-cli/
-pgl3_7/
-pglogical/
+pgl*/
