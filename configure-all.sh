@@ -71,7 +71,7 @@ for a in $(ls -rd *STABLE*); do
 	printf "\n\n\n\n"
     pushd $a
     printf "Running configure with the following arguments: --prefix=$instdir ${DEBUG_ARGS} ${ARGS} CFLAGS=$CFLAGS CPPFLAGS=$CPPFLAGS\n"
-    #./configure --prefix="$instdir" ${DEBUG_ARGS} ${ARGS} CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS"
+    ./configure --prefix="$instdir" ${DEBUG_ARGS} ${ARGS} CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS"
     # return in the $BASE_DIR and remain there
     popd
 	printf "\n\n\n\n"
