@@ -32,7 +32,7 @@ for a in $(ls -rd *STABLE*); do
 	printf "\n\n\n\n"
     pushd $a
 	printf "Installing $a\n"
-    bear -- make -j && make -j install && bear -- make -C contrib && make -C contrib install
+    bear -- make && make install 
     # return in the $BASE_DIR and remain there
     popd
 	printf "\n\n\n\n"
