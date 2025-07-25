@@ -29,11 +29,11 @@ for a in $(ls -rd *STABLE*); do
     instdir="$BASE_DIR/.pgenv/versions/$a"
 
     rm -fr $a/DemoInstall "$instdir"
-	printf "\n\n\n\n"
+    printf "\n\n\n\n"
     pushd $a
-	printf "Installing $a\n"
-    bear -- make && make install && make -C contrib && make -C contrib install
+    printf "Installing $a\n"
+    make -j$(nproc) && make install && make -j$(nproc) -C contrib && make -C contrib install
     # return in the $BASE_DIR and remain there
     popd
-	printf "\n\n\n\n"
+    printf "\n\n\n\n"
 done

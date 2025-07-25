@@ -138,12 +138,12 @@ pgworkon() {
         if [ ! -d "$BASE_DIR" ]; then
             # create a new dev branch or checkout if exists
             pushd $PGL_REPO
-            git worktree add -b dev/$2 $BASE_DIR/pgl $EXTENSION_BRANCH ||
-                git worktree add $BASE_DIR/pgl dev/$2
+            git worktree add -b dev/fi/$2 $BASE_DIR/pgl $EXTENSION_BRANCH ||
+                git worktree add $BASE_DIR/pgl dev/fi/$2
             popd
             pushd $BDR_REPO
-            git worktree add -b dev/$2 $BASE_DIR/bdr $EXTENSION_BRANCH ||
-                git worktree add $BASE_DIR/bdr dev/$2
+            git worktree add -b dev/fi/$2 $BASE_DIR/bdr $EXTENSION_BRANCH ||
+                git worktree add $BASE_DIR/bdr dev/fi/$2
             popd
             $SOURCE_DIR/new-branch.sh $1 $2
             $SOURCE_DIR/configure-all.sh $1 $2
