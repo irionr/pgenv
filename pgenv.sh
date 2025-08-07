@@ -310,7 +310,8 @@ EOF
         local TESTPORT=$(awk '{if (FNR == 4) {print $0}}' "${POSTMASTER}")
         local TESTHOST=$(awk '{if (FNR == 5) {print $0}}' "${POSTMASTER}")
 
-        psql -h $TESTHOST -p $TESTPORT -U $USER $TESTDB
+        echo "psql -d \"host=$TESTHOST port=$TESTPORT user=$USER dbname=$TESTDB\""
+        eval "psql -d \"host=$TESTHOST port=$TESTPORT user=$USER dbname=$TESTDB\""
     }
 	pgpgbench() {
         # This function accepts two arguments.
@@ -325,13 +326,14 @@ EOF
         else
             echo "#### Using TAP instance ####"
             local POSTMASTER=(tmp_check/t_*"${1}"_data*/pgdata/postmaster.pid)
-            local TESTDB=${2:-"bdrtest"}
+            local TESTDB=${3:-"bdrtest"}
         fi
 
         local TESTPORT=$(awk '{if (FNR == 4) {print $0}}' "${POSTMASTER}")
         local TESTHOST=$(awk '{if (FNR == 5) {print $0}}' "${POSTMASTER}")
 
-        pgbench -h $TESTHOST -p $TESTPORT -U $USER $TESTDB $3
+        echo "pgbench $2 -d \"host=$TESTHOST port=$TESTPORT user=$USER dbname=$TESTDB\""
+        eval "pgbench $2 -d \"host=$TESTHOST port=$TESTPORT user=$USER dbname=$TESTDB\""
     }
 
     unset usage
