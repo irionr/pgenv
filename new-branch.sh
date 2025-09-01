@@ -2,7 +2,7 @@
 set -e
 
 # Set the current PostgreSQL development branch
-CURRENT_DEVEL=18
+CURRENT_DEVEL=19
 
 SOURCE_DIR="$HOME/pgsql"
 TARGET_DIR="$HOME/pgsql"

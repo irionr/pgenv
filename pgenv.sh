@@ -32,7 +32,7 @@ fi
 
 pgworkon() {
     local SOURCE_DIR="$HOME/pgsql"
-    local CURRENT_DEVEL=18
+    local CURRENT_DEVEL=19
     local BASE_PORT=5400
     local JIRA=0
     # clenup old env
