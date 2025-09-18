@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for a in $(ls -rd *STABLE*); do
+for a in $(ls -rd *master) $(ls -rd *STABLE*); do
     # if the directory doesn't exist skip it
     [ -d $a ] || continue
 

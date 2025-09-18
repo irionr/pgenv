@@ -4,7 +4,7 @@ die() {
     exit
 }
 
-for a in $(ls -rd *STABLE*); do
+for a in $(ls -rd *master) $(ls -rd *STABLE*); do
     pushd $a
     git fetch --all -p
     git checkout $a
