@@ -34,6 +34,7 @@ fi
 #CFLAGS+=" --sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
 CFLAGS+=" -Wall -Wextra -Wuninitialized -Wint-conversion -Wno-unused-parameter -Wno-sign-compare"
 CFLAGS+=" -ggdb -Og -g3 -fno-omit-frame-pointer -Wno-missing-field-initializers "
+# use -O0 to see optimized values with gdb/lvm
 
 # openSUSE and SUSE have tclConfig.sh in /usr/lib64 for x86_64 machines
 if [ -f "/etc/SuSE-release" ] && [ "$(uname -m)" == 'x86_64' ]; then
