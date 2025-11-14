@@ -25,12 +25,12 @@ master | ${CURRENT_DEVEL})
 PGE1*)
   BRANCH=2QREL_${1#PGE}_STABLE_dev
   VER=${1#PGE}
-  MASTER=2QPG-master
+  MASTER=2QREL-master
   ;;
 36PGE1*)
   BRANCH=2QREL_${1#36PGE}_STABLE_3_6
   VER=${1#36PGE}
-  MASTER=2QPG-master
+  MASTER=2QREL-master
   ;;
 EDBAS)
   BRANCH=EDBAS-master
