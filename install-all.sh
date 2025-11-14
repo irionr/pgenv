@@ -31,8 +31,8 @@ for a in $(ls -rd *master) $(ls -rd *STABLE*); do
     rm -fr $a/DemoInstall "$instdir"
     printf "\n\n\n\n"
     pushd $a
-    printf "Installing $a\n"
-    make -j$(nproc) world-bin && make -j$(nproc) install-world-bin
+    printf "Building $a\n"
+    make -j$(nproc) && make install && make -C contrib && make -C contrib install
     # return in the $BASE_DIR and remain there
     popd
     printf "\n\n\n\n"
