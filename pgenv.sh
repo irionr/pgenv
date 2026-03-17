@@ -30,13 +30,11 @@ if ! [[ "$PROMPT_COMMAND" =~ _pgenv_hook ]]; then
     PROMPT_COMMAND="_pgenv_hook;$PROMPT_COMMAND"
 fi
 
+source "$HOME/prj/pgenv/pgenv-lib.sh"
+
 pgworkon() {
-    local SOURCE_DIR="$HOME/pgsql"
-    local SCRIPT_DIR="$HOME/prj/pgenv"
-    local CURRENT_DEVEL=19
-    local BASE_PORT=5400
-    local JIRA=0
-    # clenup old env
+    local BASE_PORT JIRA=0
+    # cleanup old env
     if [ -n "$PG_OLD_PATH" ]; then
         export PATH=$PG_OLD_PATH
         unset PG_OLD_PATH
@@ -49,59 +47,15 @@ pgworkon() {
         echo "$0: pgworkon <flavor><version> [<JIRA> [<BDR base branch>]] " 1>&2
     }
 
-    case "$1" in
-    "")
+    if [ -z "$1" ]; then
         usage "ERROR: missing argument"
         return 1
-        ;;
-    master | $CURRENT_DEVEL)
-        PG_VERSION=$CURRENT_DEVEL
-        PG_BRANCH=master
-        ;;
-    1*)
-        PG_VERSION="$1"
-        PG_BRANCH="REL_${1}_STABLE"
-        ;;
-    PGE)
-        PG_VERSION=$CURRENT_DEVEL
-        PG_BRANCH="BDRPG-master"
-        BASE_PORT=6400
-        ;;
-    PGE1*)
-        PG_VERSION="${1#PGE}"
-        PG_BRANCH="2QREL_${PG_VERSION}_STABLE_dev"
-        BASE_PORT=7400
-        ;;
-    36PGE1*)
-        PG_VERSION="${1#36PGE}"
-        PG_BRANCH="2QREL_${PG_VERSION}_STABLE_3_6"
-        BASE_PORT=8400
-        ;;
-    EDBAS)
-        PG_VERSION=$CURRENT_DEVEL
-        PG_BRANCH="EDBAS-master"
-        BASE_PORT=9400
-        ;;
-    EDBAS1*)
-        PG_VERSION="${1#EDBAS}"
-        PG_BRANCH="EDBAS_${PG_VERSION}_STABLE"
-        BASE_PORT=10400
-        ;;
-    BDRPG)
-        PG_VERSION=$CURRENT_DEVEL
-        PG_BRANCH="BDRPG-master"
-        BASE_PORT=11400
-        ;;
-    BDRPG1*)
-        PG_VERSION="${1#BDRPG}"
-        PG_BRANCH="BDRPG_${PG_VERSION}_STABLE"
-        BASE_PORT=12400
-        ;;
-    *)
-        PG_VERSION="$1"
-        PG_BRANCH="REL${1/./_}_STABLE"
-        ;;
-    esac
+    fi
+
+    _pgenv_resolve_version "$1"
+    PG_VERSION=$_PGENV_VERSION
+    PG_BRANCH=$_PGENV_BRANCH
+    BASE_PORT=$_PGENV_BASE_PORT
 
     case "$3" in
     6)
@@ -146,9 +100,9 @@ pgworkon() {
             git worktree add -b dev/fi/$2 $BASE_DIR/bdr $EXTENSION_BRANCH ||
                 git worktree add $BASE_DIR/bdr dev/fi/$2
             popd
-            $SCRIPT_DIR/new-branch.sh $1 $2
-            $SCRIPT_DIR/configure-all.sh $1 $2
-            $SCRIPT_DIR/install-all.sh $1 $2
+            pgenv_new_branch $1 $2
+            pgenv_configure_all $1 $2
+            pgenv_install_all $1 $2
         fi
         cd $BASE_DIR/bdr
         echo -ne "\e]1;${1} - ${2}\a"
@@ -157,9 +111,9 @@ pgworkon() {
         local PG_DIR="$SOURCE_DIR/.pgenv"
         PG_TEST_PORT_DIR="tmp_check"
         if [ ! -d "$BASE_DIR/$PG_BRANCH" ]; then
-            $SCRIPT_DIR/new-branch.sh $1
-            $SCRIPT_DIR/configure-all.sh $1
-            $SCRIPT_DIR/install-all.sh $1
+            pgenv_new_branch $1
+            pgenv_configure_all $1
+            pgenv_install_all $1
         fi
     fi
 
@@ -182,10 +136,8 @@ pgworkon() {
     export PGHOST=/tmp
 
     if which dpkg-architecture >/dev/null; then
-        """
-        No undo action on pgdeactivate. Having libreadline preloaded
-        shouldn't be of any harm
-        """
+        # No undo action on pgdeactivate. Having libreadline preloaded
+        # shouldn't be of any harm.
         if ! [[ "$LD_PRELOAD" =~ 'libreadline.so' ]]; then
             export LD_PRELOAD=/lib/$(dpkg-architecture -qDEB_BUILD_GNU_TYPE)/libreadline.so.6:$LD_PRELOAD
         fi
@@ -292,49 +244,33 @@ EOF
         unset pgdeactivate pgreinit pgstop pgstart pgrestart
     }
 
-    pgpsql() {
-        # This function accepts two arguments.
-        # the first argument is the `name` of the node we want to connect
-        # the second is to specify the `database`, if it's not supplied
-        # then it will default to "bdrtest"
-
+    # Finds the postmaster for a test instance and sets _PGENV_TESTPORT,
+    # _PGENV_TESTHOST. Arguments: node_name, db_override
+    _pgenv_find_test_instance() {
+        local node="$1" db_override="$2"
         if [ -f "tmp_check/data/postmaster.pid" ]; then
             echo "### Using regression instance ####"
-            local POSTMASTER=tmp_check/data/postmaster.pid
-            local TESTDB=${1:-''}
+            _PGENV_POSTMASTER=tmp_check/data/postmaster.pid
+            _PGENV_TESTDB=${node:-''}
         else
             echo "#### Using TAP instance ####"
-            local POSTMASTER=(tmp_check/t_*"${1}"_data*/pgdata/postmaster.pid)
-            local TESTDB=${2:-"bdrtest"}
+            _PGENV_POSTMASTER=(tmp_check/t_*"${node}"_data*/pgdata/postmaster.pid)
+            _PGENV_TESTDB=${db_override:-"bdrtest"}
         fi
-
-        local TESTPORT=$(awk '{if (FNR == 4) {print $0}}' "${POSTMASTER}")
-        local TESTHOST=$(awk '{if (FNR == 5) {print $0}}' "${POSTMASTER}")
-
-        echo "psql -d \"host=$TESTHOST port=$TESTPORT user=$USER dbname=$TESTDB\""
-        eval "psql -d \"host=$TESTHOST port=$TESTPORT user=$USER dbname=$TESTDB\""
+        _PGENV_TESTPORT=$(awk '{if (FNR == 4) {print $0}}' "${_PGENV_POSTMASTER}")
+        _PGENV_TESTHOST=$(awk '{if (FNR == 5) {print $0}}' "${_PGENV_POSTMASTER}")
     }
-	pgpgbench() {
-        # This function accepts two arguments.
-        # the first argument is the `name` of the node we want to connect
-        # the second is to specify the `database`, if it's not supplied
-        # then it will default to "bdrtest"
 
-        if [ -f "tmp_check/data/postmaster.pid" ]; then
-            echo "### Using regression instance ####"
-            local POSTMASTER=tmp_check/data/postmaster.pid
-            local TESTDB=${1:-''}
-        else
-            echo "#### Using TAP instance ####"
-            local POSTMASTER=(tmp_check/t_*"${1}"_data*/pgdata/postmaster.pid)
-            local TESTDB=${3:-"bdrtest"}
-        fi
+    pgpsql() {
+        _pgenv_find_test_instance "$1" "$2"
+        echo "psql -d \"host=$_PGENV_TESTHOST port=$_PGENV_TESTPORT user=$USER dbname=$_PGENV_TESTDB\""
+        eval "psql -d \"host=$_PGENV_TESTHOST port=$_PGENV_TESTPORT user=$USER dbname=$_PGENV_TESTDB\""
+    }
 
-        local TESTPORT=$(awk '{if (FNR == 4) {print $0}}' "${POSTMASTER}")
-        local TESTHOST=$(awk '{if (FNR == 5) {print $0}}' "${POSTMASTER}")
-
-        echo "pgbench $2 -d \"host=$TESTHOST port=$TESTPORT user=$USER dbname=$TESTDB\""
-        eval "pgbench $2 -d \"host=$TESTHOST port=$TESTPORT user=$USER dbname=$TESTDB\""
+    pgpgbench() {
+        _pgenv_find_test_instance "$1" "$3"
+        echo "pgbench $2 -d \"host=$_PGENV_TESTHOST port=$_PGENV_TESTPORT user=$USER dbname=$_PGENV_TESTDB\""
+        eval "pgbench $2 -d \"host=$_PGENV_TESTHOST port=$_PGENV_TESTPORT user=$USER dbname=$_PGENV_TESTDB\""
     }
 
     unset usage
