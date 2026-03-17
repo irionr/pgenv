@@ -32,6 +32,7 @@ fi
 
 pgworkon() {
     local SOURCE_DIR="$HOME/pgsql"
+    local SCRIPT_DIR="$HOME/prj/pgenv"
     local CURRENT_DEVEL=19
     local BASE_PORT=5400
     local JIRA=0
@@ -145,9 +146,9 @@ pgworkon() {
             git worktree add -b dev/fi/$2 $BASE_DIR/bdr $EXTENSION_BRANCH ||
                 git worktree add $BASE_DIR/bdr dev/fi/$2
             popd
-            $SOURCE_DIR/new-branch.sh $1 $2
-            $SOURCE_DIR/configure-all.sh $1 $2
-            $SOURCE_DIR/install-all.sh $1 $2
+            $SCRIPT_DIR/new-branch.sh $1 $2
+            $SCRIPT_DIR/configure-all.sh $1 $2
+            $SCRIPT_DIR/install-all.sh $1 $2
         fi
         cd $BASE_DIR/bdr
         echo -ne "\e]1;${1} - ${2}\a"
@@ -156,9 +157,9 @@ pgworkon() {
         local PG_DIR="$SOURCE_DIR/.pgenv"
         PG_TEST_PORT_DIR="tmp_check"
         if [ ! -d "$BASE_DIR/$PG_BRANCH" ]; then
-            $SOURCE_DIR/new-branch.sh $1
-            $SOURCE_DIR/configure-all.sh $1
-            $SOURCE_DIR/install-all.sh $1
+            $SCRIPT_DIR/new-branch.sh $1
+            $SCRIPT_DIR/configure-all.sh $1
+            $SCRIPT_DIR/install-all.sh $1
         fi
     fi
 
