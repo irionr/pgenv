@@ -1,5 +1,9 @@
 #!/bin/bash
 
+SOURCE_DIR="$HOME/pgsql"
+
+pushd $SOURCE_DIR
+
 for a in $(ls -rd *master) $(ls -rd *STABLE*); do
     # if the directory doesn't exist skip it
     [ -d $a ] || continue
@@ -15,10 +19,12 @@ for a in $(ls -rd *master) $(ls -rd *STABLE*); do
         [ "BDRPG_${1#BDRPG}_STABLE" != "$a" ] &&
         continue
 
-    rm -fr "$HOME/.pgenv/versions/$a" "$HOME/.pgenv/data/$a/*"
+    rm -fr "$SOURCE_DIR/.pgenv/versions/$a" "$SOURCE_DIR/.pgenv/data/$a/*"
     pushd $a
     git worktree prune
     make clean distclean
     git clean -fdx
     popd
 done
+
+popd

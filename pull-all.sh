@@ -4,6 +4,10 @@ die() {
     exit
 }
 
+SOURCE_DIR="$HOME/pgsql"
+
+pushd $SOURCE_DIR
+
 for a in $(ls -rd *master) $(ls -rd *STABLE*); do
     pushd $a
     git fetch --all -p
@@ -12,3 +16,5 @@ for a in $(ls -rd *master) $(ls -rd *STABLE*); do
     git worktree prune
     popd
 done
+
+popd
