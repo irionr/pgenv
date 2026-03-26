@@ -101,35 +101,72 @@ _pgenv_skip_branch() {
     return 0  # skip
 }
 
+# Wait for parallel jobs and report failures.
+# Usage: _pgenv_wait_jobs pids branches
+#   pids     - name of array containing background PIDs
+#   branches - name of array containing matching branch names
+_pgenv_wait_jobs() {
+    local -n _pids=$1 _branches=$2
+    local failed=0 i
+
+    for (( i=0; i < ${#_pids[@]}; i++ )); do
+        if ! wait "${_pids[$i]}"; then
+            printf "FAILED: %s\n" "${_branches[$i]}" >&2
+            (( failed++ ))
+        else
+            printf "OK: %s\n" "${_branches[$i]}"
+        fi
+    done
+
+    if (( failed > 0 )); then
+        printf "\n%d branch(es) failed\n" "$failed" >&2
+        return 1
+    fi
+}
+
 pgenv_pull_all() (
-    set -e
     cd "$SOURCE_DIR"
+    local -a pids=()
+    local -a branches=()
 
     for a in $(ls -rd *master) $(ls -rd *STABLE*); do
-        pushd "$a" > /dev/null
-        git fetch --all -p
-        git checkout "$a"
-        git reset --hard "origin/$a"
-        git worktree prune
-        popd > /dev/null
+        [ -d "$a" ] || continue
+        (
+            cd "$SOURCE_DIR/$a"
+            git fetch --all -p
+            git checkout "$a"
+            git reset --hard "origin/$a"
+            git worktree prune
+        ) &
+        pids+=($!)
+        branches+=("$a")
     done
+
+    _pgenv_wait_jobs pids branches
 )
 
 pgenv_clean_all() (
     local filter="$1"
     cd "$SOURCE_DIR"
+    local -a pids=()
+    local -a branches=()
 
     for a in $(ls -rd *master) $(ls -rd *STABLE*); do
         [ -d "$a" ] || continue
         _pgenv_skip_branch "$filter" "$a" && continue
 
-        rm -fr "$SOURCE_DIR/.pgenv/versions/$a" "$SOURCE_DIR/.pgenv/data/$a"/*
-        pushd "$a" > /dev/null
-        git worktree prune
-        make clean distclean
-        git clean -fdx
-        popd > /dev/null
+        (
+            rm -fr "$SOURCE_DIR/.pgenv/versions/$a" "$SOURCE_DIR/.pgenv/data/$a"/*
+            cd "$SOURCE_DIR/$a"
+            git worktree prune
+            make clean distclean 2>/dev/null; true
+            git clean -fdx
+        ) &
+        pids+=($!)
+        branches+=("$a")
     done
+
+    _pgenv_wait_jobs pids branches
 )
 
 pgenv_configure_all() (
@@ -138,9 +175,9 @@ pgenv_configure_all() (
     local base_dir="${2:+$HOME/work/$2}"
     base_dir="${base_dir:-$SOURCE_DIR}"
 
-    local ARGS=
+    local -a ARGS=()
     if which port > /dev/null 2>&1; then
-        ARGS+=" --with-libraries=/opt/local/lib --with-includes=/opt/local/include"
+        ARGS+=(--with-libraries=/opt/local/lib --with-includes=/opt/local/include)
     elif which brew > /dev/null 2>&1; then
         local INCLUDES= LIBS=
         for pkg in openssl readline libxml2; do
@@ -151,27 +188,27 @@ pgenv_configure_all() (
             LIBS+="$prefix/lib"
             export PATH="$prefix/bin:$PATH"
         done
-        ARGS+=" --with-includes=$INCLUDES"
-        ARGS+=" --with-libraries=$LIBS"
+        ARGS+=(--with-includes="$INCLUDES")
+        ARGS+=(--with-libraries="$LIBS")
     fi
 
-    ARGS+=" --with-libxml --with-openssl"
-    local DEBUG_ARGS="--enable-depend --enable-cassert --enable-debug "
+    ARGS+=(--with-libxml --with-openssl)
+    local -a DEBUG_ARGS=(--enable-depend --enable-cassert --enable-debug)
 
     if [ -n "$(perldoc -lm IPC::Run 2>/dev/null)" ]; then
-        DEBUG_ARGS+=" --with-perl --enable-tap-tests"
+        DEBUG_ARGS+=(--with-perl --enable-tap-tests)
     fi
 
     local CFLAGS="${CFLAGS:-}"
     CFLAGS+=" -Wall -Wextra -Wuninitialized -Wint-conversion -Wno-unused-parameter -Wno-sign-compare"
-    CFLAGS+=" -ggdb -Og -g3 -fno-omit-frame-pointer -Wno-missing-field-initializers "
+    CFLAGS+=" -ggdb -Og -g3 -fno-omit-frame-pointer -Wno-missing-field-initializers"
 
     if [ -f "/etc/SuSE-release" ] && [ "$(uname -m)" == 'x86_64' ]; then
-        ARGS+=" --with-tclconfig=/usr/lib64"
+        ARGS+=(--with-tclconfig=/usr/lib64)
     fi
 
     if (which ccache && which clang) > /dev/null 2>&1; then
-        ARGS+=" CC='ccache clang -Qunused-arguments -fcolor-diagnostics'"
+        ARGS+=(CC="ccache clang -Qunused-arguments -fcolor-diagnostics")
     fi
 
     cd "$base_dir"
@@ -183,8 +220,8 @@ pgenv_configure_all() (
         local instdir="$base_dir/.pgenv/versions/$a"
         printf "\n\n\n\n"
         pushd "$a" > /dev/null
-        printf "Running configure with the following arguments: --prefix=$instdir ${DEBUG_ARGS} ${ARGS} CFLAGS=$CFLAGS CPPFLAGS=$CPPFLAGS\n"
-        ./configure --prefix="$instdir" ${DEBUG_ARGS} ${ARGS} CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS"
+        printf "Running configure with the following arguments: --prefix=$instdir ${DEBUG_ARGS[*]} ${ARGS[*]} CFLAGS=$CFLAGS CPPFLAGS=$CPPFLAGS\n"
+        ./configure --prefix="$instdir" "${DEBUG_ARGS[@]}" "${ARGS[@]}" CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS"
         popd > /dev/null
         printf "\n\n\n\n"
     done
