@@ -101,7 +101,7 @@ _pgenv_skip_branch() {
     return 0  # skip
 }
 
-# Wait for parallel jobs, show progress bar, report failures.
+# Wait for parallel jobs, show progress with spinner and elapsed time.
 # Args: logdir pid1 branch1 pid2 branch2 ...
 _pgenv_wait_jobs() {
     local logdir=$1
@@ -115,27 +115,42 @@ _pgenv_wait_jobs() {
 
     local total=${#pids[@]} done=0 failed=0
     local -a failed_branches=()
-    local cols=$(tput cols 2>/dev/null || echo 80)
-    local bar_width=$(( cols - 30 ))
-    (( bar_width < 10 )) && bar_width=10
+    local -a spinner=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+    local spin_idx=0
+    local start=$SECONDS
 
-    for (( i=0; i < total; i++ )); do
-        if ! wait "${pids[$i]}"; then
-            failed_branches+=("${branches[$i]}")
-            (( failed++ ))
-        fi
-        (( done++ ))
+    # Hide cursor during progress display
+    tput civis 2>/dev/null
 
-        # Draw progress bar
-        local pct=$(( done * 100 / total ))
-        local filled=$(( done * bar_width / total ))
-        local empty=$(( bar_width - filled ))
-        printf "\r  [%s%s] %3d%%  %d/%d" \
-            "$(printf '#%.0s' $(seq 1 $filled 2>/dev/null))" \
-            "$(printf '.%.0s' $(seq 1 $empty 2>/dev/null))" \
-            "$pct" "$done" "$total"
+    while (( done < total )); do
+        for (( i=0; i < total; i++ )); do
+            [[ -z "${pids[$i]}" ]] && continue
+            if ! kill -0 "${pids[$i]}" 2>/dev/null; then
+                if ! wait "${pids[$i]}"; then
+                    failed_branches+=("${branches[$i]}")
+                    (( failed++ ))
+                fi
+                (( done++ ))
+                pids[$i]=""
+            fi
+        done
+
+        local elapsed=$(( SECONDS - start ))
+        local mins=$(( elapsed / 60 ))
+        local secs=$(( elapsed % 60 ))
+        local timestr="${secs}s"
+        (( mins > 0 )) && timestr="${mins}m$(printf '%02d' $secs)s"
+
+        local cl=$'\r\e[K'
+        print -n "${cl}  ${spinner[$spin_idx]}  ${done}/${total} branches  [${timestr}]"
+        spin_idx=$(( (spin_idx + 1) % ${#spinner[@]} ))
+
+        (( done < total )) && sleep 0.2
     done
-    printf "\n"
+
+    tput cnorm 2>/dev/null
+    local cl=$'\r\e[K'
+    print "${cl}  done  ${done}/${total} branches  [${timestr}]"
 
     if (( failed > 0 )); then
         for b in "${failed_branches[@]}"; do
@@ -247,19 +262,23 @@ pgenv_configure_all() (
     fi
 
     cd "$base_dir"
+    local logdir="$base_dir/.pgenv/logs/configure"
+    mkdir -p "$logdir"
+    local -a jobs=()
 
     for a in $(ls -rd *master) $(ls -rd *STABLE*); do
         [ -d "$a" ] || continue
         _pgenv_skip_branch "$filter" "$a" && continue
 
         local instdir="$base_dir/.pgenv/versions/$a"
-        printf "\n\n\n\n"
-        pushd "$a" > /dev/null
-        printf "Running configure with the following arguments: --prefix=$instdir ${DEBUG_ARGS[*]} ${ARGS[*]} CFLAGS=$CFLAGS CPPFLAGS=$CPPFLAGS\n"
-        ./configure --prefix="$instdir" "${DEBUG_ARGS[@]}" "${ARGS[@]}" CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS"
-        popd > /dev/null
-        printf "\n\n\n\n"
+        (
+            cd "$base_dir/$a"
+            ./configure --prefix="$instdir" "${DEBUG_ARGS[@]}" "${ARGS[@]}" CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS"
+        ) > "$logdir/$a.log" 2>&1 &
+        jobs+=($! "$a")
     done
+
+    _pgenv_wait_jobs "$logdir" "${jobs[@]}"
 )
 
 pgenv_install_all() (
