@@ -101,55 +101,91 @@ _pgenv_skip_branch() {
     return 0  # skip
 }
 
-# Wait for parallel jobs and report failures.
-# Usage: _pgenv_wait_jobs pids branches
-#   pids     - name of array containing background PIDs
-#   branches - name of array containing matching branch names
+# Wait for parallel jobs, show progress bar, report failures.
+# Args: logdir pid1 branch1 pid2 branch2 ...
 _pgenv_wait_jobs() {
-    local -n _pids=$1 _branches=$2
-    local failed=0 i
+    local logdir=$1
+    shift
 
-    for (( i=0; i < ${#_pids[@]}; i++ )); do
-        if ! wait "${_pids[$i]}"; then
-            printf "FAILED: %s\n" "${_branches[$i]}" >&2
-            (( failed++ ))
-        else
-            printf "OK: %s\n" "${_branches[$i]}"
-        fi
+    local -a pids=() branches=()
+    while (( $# >= 2 )); do
+        pids+=($1); branches+=($2)
+        shift 2
     done
 
+    local total=${#pids[@]} done=0 failed=0
+    local -a failed_branches=()
+    local cols=$(tput cols 2>/dev/null || echo 80)
+    local bar_width=$(( cols - 30 ))
+    (( bar_width < 10 )) && bar_width=10
+
+    for (( i=0; i < total; i++ )); do
+        if ! wait "${pids[$i]}"; then
+            failed_branches+=("${branches[$i]}")
+            (( failed++ ))
+        fi
+        (( done++ ))
+
+        # Draw progress bar
+        local pct=$(( done * 100 / total ))
+        local filled=$(( done * bar_width / total ))
+        local empty=$(( bar_width - filled ))
+        printf "\r  [%s%s] %3d%%  %d/%d" \
+            "$(printf '#%.0s' $(seq 1 $filled 2>/dev/null))" \
+            "$(printf '.%.0s' $(seq 1 $empty 2>/dev/null))" \
+            "$pct" "$done" "$total"
+    done
+    printf "\n"
+
     if (( failed > 0 )); then
-        printf "\n%d branch(es) failed\n" "$failed" >&2
+        for b in "${failed_branches[@]}"; do
+            printf "FAILED: %s  (see %s/%s.log)\n" "$b" "$logdir" "$b" >&2
+        done
+        printf "\n%d/%d branch(es) failed\n" "$failed" "$total" >&2
         return 1
     fi
+    return 0
 }
 
 pgenv_pull_all() (
     cd "$SOURCE_DIR"
-    local -a pids=()
-    local -a branches=()
+    local logdir="$SOURCE_DIR/.pgenv/logs/pull"
+    mkdir -p "$logdir"
+    local -a jobs=()
 
-    for a in $(ls -rd *master) $(ls -rd *STABLE*); do
+    # Phase 1: fetch once per repo (master dirs own the clones,
+    # STABLE dirs are worktrees sharing the same .git objects)
+    for a in $(ls -rd *master); do
         [ -d "$a" ] || continue
         (
             cd "$SOURCE_DIR/$a"
             git fetch --all -p
+            git worktree prune
+        ) > "$logdir/$a.log" 2>&1 &
+        jobs+=($! "$a")
+    done
+    _pgenv_wait_jobs "$logdir" "${jobs[@]}"
+
+    # Phase 2: checkout + reset in parallel (local per-worktree ops)
+    jobs=()
+    for a in $(ls -rd *master) $(ls -rd *STABLE*); do
+        [ -d "$a" ] || continue
+        (
+            cd "$SOURCE_DIR/$a"
             git checkout "$a"
             git reset --hard "origin/$a"
-            git worktree prune
-        ) &
-        pids+=($!)
-        branches+=("$a")
+        ) >> "$logdir/$a.log" 2>&1 &
+        jobs+=($! "$a")
     done
-
-    _pgenv_wait_jobs pids branches
+    _pgenv_wait_jobs "$logdir" "${jobs[@]}"
 )
 
 pgenv_clean_all() (
     local filter="$1"
     cd "$SOURCE_DIR"
-    local -a pids=()
-    local -a branches=()
+    local logdir="$SOURCE_DIR/.pgenv/logs/clean"
+    mkdir -p "$logdir"
+    local -a jobs=()
 
     for a in $(ls -rd *master) $(ls -rd *STABLE*); do
         [ -d "$a" ] || continue
@@ -161,12 +197,11 @@ pgenv_clean_all() (
             git worktree prune
             make clean distclean 2>/dev/null; true
             git clean -fdx
-        ) &
-        pids+=($!)
-        branches+=("$a")
+        ) > "$logdir/$a.log" 2>&1 &
+        jobs+=($! "$a")
     done
 
-    _pgenv_wait_jobs pids branches
+    _pgenv_wait_jobs "$logdir" "${jobs[@]}"
 )
 
 pgenv_configure_all() (
