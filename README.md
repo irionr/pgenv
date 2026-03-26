@@ -149,9 +149,10 @@ reported at the end with a pointer to the relevant log file.
 Activates a PostgreSQL development environment. See the [Flavors](#flavors)
 table above for valid prefixes.
 
-The second (optional) argument is the JIRA number (or any other tracking
-number). It creates a work directory under `$HOME/work/` with that name and
-sets up git worktrees for bdr and pglogical.
+The second (optional) argument is the ticket number. It creates a work
+directory under `$HOME/work/<ticket>/` with a git worktree branched as
+`dev/fi/<ticket>`. For `BDR-*` tickets, bdr and pglogical worktrees are also
+created. For `PG-*` tickets, only the PostgreSQL worktree is set up.
 
 The third (optional) argument is the BDR/PGL extension version (e.g. `6`, `5`, `4`,
 `3.7`, `3.6`). Defaults to `6`.

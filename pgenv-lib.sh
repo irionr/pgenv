@@ -309,7 +309,7 @@ pgenv_new_branch() (
 
     if [ -n "$jira" ]; then
         local TARGET_DIR="$HOME/work/$jira"
-        local DEVBRANCH="dev/$jira"
+        local DEVBRANCH="dev/fi/$jira"
         pushd "$SOURCE_DIR/$MASTER" > /dev/null
         git worktree add "$TARGET_DIR/$BRANCH" "$DEVBRANCH" ||
             git worktree add -b "$DEVBRANCH" "$TARGET_DIR/$BRANCH" "$BRANCH"

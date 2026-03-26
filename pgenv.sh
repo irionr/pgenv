@@ -86,25 +86,35 @@ pgworkon() {
     if [ -n "$2" ]; then
         export PG_WORKON=$2
         JIRA="${2#BDR-}"
+        JIRA="${JIRA#PG-}"
         local BASE_DIR="$HOME/work/$2"
         local PG_DIR="$BASE_DIR/.pgenv"
         PG_TEST_PORT_DIR="tmp_check"
 
         if [ ! -d "$BASE_DIR" ]; then
-            # create a new dev branch or checkout if exists
-            pushd $PGL_REPO
-            git worktree add -b dev/fi/$2 $BASE_DIR/pgl $EXTENSION_BRANCH ||
-                git worktree add $BASE_DIR/pgl dev/fi/$2
-            popd
-            pushd $BDR_REPO
-            git worktree add -b dev/fi/$2 $BASE_DIR/bdr $EXTENSION_BRANCH ||
-                git worktree add $BASE_DIR/bdr dev/fi/$2
-            popd
-            pgenv_new_branch $1 $2
+            if [[ "$2" == PG-* ]]; then
+                # Community PG ticket — only create PG worktree
+                pgenv_new_branch $1 $2
+            else
+                # BDR/PGE ticket — also create bdr and pgl worktrees
+                pushd $PGL_REPO
+                git worktree add -b dev/fi/$2 $BASE_DIR/pgl $EXTENSION_BRANCH ||
+                    git worktree add $BASE_DIR/pgl dev/fi/$2
+                popd
+                pushd $BDR_REPO
+                git worktree add -b dev/fi/$2 $BASE_DIR/bdr $EXTENSION_BRANCH ||
+                    git worktree add $BASE_DIR/bdr dev/fi/$2
+                popd
+                pgenv_new_branch $1 $2
+            fi
             pgenv_configure_all $1 $2
             pgenv_install_all $1 $2
         fi
-        cd $BASE_DIR/bdr
+        if [[ "$2" == PG-* ]]; then
+            cd $BASE_DIR/$PG_BRANCH
+        else
+            cd $BASE_DIR/bdr
+        fi
         echo -ne "\e]1;${1} - ${2}\a"
     else
         local BASE_DIR="$SOURCE_DIR"
