@@ -78,14 +78,27 @@ _pgenv_resolve_version() {
 # Returns 0 (true = skip) when $branch does NOT match $filter.
 _pgenv_skip_branch() {
     local filter="$1" branch="$2"
-    [ -n "$filter" ] &&
-        [ "$filter" != "$branch" ] &&
-        [ "REL${filter/./_}_STABLE" != "$branch" ] &&
-        [ "REL_${filter}_STABLE" != "$branch" ] &&
-        [ "2QREL_${filter#36PGE}_STABLE_3_6" != "$branch" ] &&
-        [ "2QREL_${filter#PGE}_STABLE_dev" != "$branch" ] &&
-        [ "EDBAS_${filter#EDBAS}_STABLE" != "$branch" ] &&
-        [ "BDRPG_${filter#BDRPG}_STABLE" != "$branch" ]
+    [ -z "$filter" ] && return 1  # no filter = don't skip
+
+    # Direct match
+    [ "$filter" = "$branch" ] && return 1
+
+    # Match based on filter prefix (mirrors _pgenv_resolve_version)
+    case "$filter" in
+        36PGE*)
+            [ "2QREL_${filter#36PGE}_STABLE_3_6" = "$branch" ] && return 1 ;;
+        PGE*)
+            [ "2QREL_${filter#PGE}_STABLE_dev" = "$branch" ] && return 1 ;;
+        EDBAS*)
+            [ "EDBAS_${filter#EDBAS}_STABLE" = "$branch" ] && return 1 ;;
+        BDRPG*)
+            [ "BDRPG_${filter#BDRPG}_STABLE" = "$branch" ] && return 1 ;;
+        *)
+            [ "REL${filter/./_}_STABLE" = "$branch" ] && return 1
+            [ "REL_${filter}_STABLE" = "$branch" ] && return 1 ;;
+    esac
+
+    return 0  # skip
 }
 
 pgenv_pull_all() (
