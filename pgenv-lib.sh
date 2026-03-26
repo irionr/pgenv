@@ -101,37 +101,54 @@ _pgenv_skip_branch() {
     return 0  # skip
 }
 
-# Wait for parallel jobs, show progress with spinner and elapsed time.
+# Wait for parallel jobs, show per-branch completion and spinner.
 # Args: logdir pid1 branch1 pid2 branch2 ...
 _pgenv_wait_jobs() {
     local logdir=$1
     shift
 
-    local -a pids=() branches=()
+    local -a pids=() branches=() starts=()
     while (( $# >= 2 )); do
-        pids+=($1); branches+=($2)
+        pids+=($1); branches+=($2); starts+=($SECONDS)
         shift 2
     done
 
     local total=${#pids[@]} done=0 failed=0
     local -a failed_branches=()
-    local -a spinner=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
-    local spin_idx=0
+    local spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    local spin_len=10 spin_idx=0
     local start=$SECONDS
+    local cl=$'\r\e[K'
 
-    # Hide cursor during progress display
+    # Detect array start index (bash=0, zsh=1)
+    local _s=0; [[ -z "${pids[0]+set}" ]] && _s=1
+    local _e=$(( _s + total - 1 ))
+
     tput civis 2>/dev/null
 
     while (( done < total )); do
-        for (( i=0; i < total; i++ )); do
-            [[ -z "${pids[$i]}" ]] && continue
-            if ! kill -0 "${pids[$i]}" 2>/dev/null; then
-                if ! wait "${pids[$i]}"; then
-                    failed_branches+=("${branches[$i]}")
-                    (( failed++ ))
-                fi
+        for (( _i=_s; _i <= _e; _i++ )); do
+            [[ -z "${pids[$_i]}" ]] && continue
+            if ! kill -0 "${pids[$_i]}" 2>/dev/null; then
+                local rc=0
+                wait "${pids[$_i]}" || rc=$?
                 (( done++ ))
-                pids[$i]=""
+
+                local elapsed=$(( SECONDS - starts[$_i] ))
+                local mins=$(( elapsed / 60 ))
+                local secs=$(( elapsed % 60 ))
+                local btime="${secs}s"
+                (( mins > 0 )) && btime="${mins}m$(printf '%02d' $secs)s"
+
+                # Clear spinner line, print branch result, redraw spinner below
+                if (( rc != 0 )); then
+                    printf '%s  FAILED: %s  [%s]  (see %s/%s.log)\n' "$cl" "${branches[$_i]}" "$btime" "$logdir" "${branches[$_i]}"
+                    failed_branches+=("${branches[$_i]}")
+                    (( failed++ ))
+                else
+                    printf '%s  OK: %s  [%s]\n' "$cl" "${branches[$_i]}" "$btime"
+                fi
+                pids[$_i]=""
             fi
         done
 
@@ -141,22 +158,33 @@ _pgenv_wait_jobs() {
         local timestr="${secs}s"
         (( mins > 0 )) && timestr="${mins}m$(printf '%02d' $secs)s"
 
-        local cl=$'\r\e[K'
-        print -n "${cl}  ${spinner[$spin_idx]}  ${done}/${total} branches  [${timestr}]"
-        spin_idx=$(( (spin_idx + 1) % ${#spinner[@]} ))
+        # Find the oldest still-running branch
+        local oldest="" oldest_time=0 running_count=0
+        for (( _i=_s; _i <= _e; _i++ )); do
+            [[ -z "${pids[$_i]}" ]] && continue
+            (( running_count++ ))
+            local age=$(( SECONDS - starts[$_i] ))
+            if (( age > oldest_time )); then
+                oldest_time=$age
+                oldest="${branches[$_i]}"
+            fi
+        done
+
+        if (( running_count > 0 )); then
+            printf '%s  %s  %d/%d  [%s]  %s +%d more' "$cl" "${spinner:$spin_idx:1}" "$done" "$total" "$timestr" "$oldest" "$((running_count - 1))"
+        else
+            printf '%s  %s  %d/%d  [%s]' "$cl" "${spinner:$spin_idx:1}" "$done" "$total" "$timestr"
+        fi
+        spin_idx=$(( (spin_idx + 1) % spin_len ))
 
         (( done < total )) && sleep 0.2
     done
 
     tput cnorm 2>/dev/null
-    local cl=$'\r\e[K'
-    print "${cl}  done  ${done}/${total} branches  [${timestr}]"
+    printf '%s  done  %d/%d branches  [%s]\n' "$cl" "$total" "$total" "$timestr"
 
     if (( failed > 0 )); then
-        for b in "${failed_branches[@]}"; do
-            printf "FAILED: %s  (see %s/%s.log)\n" "$b" "$logdir" "$b" >&2
-        done
-        printf "\n%d/%d branch(es) failed\n" "$failed" "$total" >&2
+        printf '\n%d/%d branch(es) failed\n' "$failed" "$total" >&2
         return 1
     fi
     return 0
@@ -207,7 +235,7 @@ pgenv_clean_all() (
         _pgenv_skip_branch "$filter" "$a" && continue
 
         (
-            rm -fr "$SOURCE_DIR/.pgenv/versions/$a" "$SOURCE_DIR/.pgenv/data/$a"/*
+            rm -fr "$SOURCE_DIR/.pgenv/versions/$a" "$SOURCE_DIR/.pgenv/data/$a"
             cd "$SOURCE_DIR/$a"
             git worktree prune
             make clean distclean 2>/dev/null; true
@@ -220,7 +248,6 @@ pgenv_clean_all() (
 )
 
 pgenv_configure_all() (
-    set -e
     local filter="$1"
     local base_dir="${2:+$HOME/work/$2}"
     base_dir="${base_dir:-$SOURCE_DIR}"
@@ -282,28 +309,45 @@ pgenv_configure_all() (
 )
 
 pgenv_install_all() (
-    set -e
-    trap 'echo ERROR: installing $a FAILED!' ERR
     local filter="$1"
     local base_dir="${2:+$HOME/work/$2}"
     base_dir="${base_dir:-$SOURCE_DIR}"
 
     cd "$base_dir"
+    local logdir="$base_dir/.pgenv/logs/install"
+    mkdir -p "$logdir"
 
+    # Count branches first
+    local -a all_branches=()
     for a in $(ls -rd *master) $(ls -rd *STABLE*); do
         [ -d "$a" ] || continue
         _pgenv_skip_branch "$filter" "$a" && continue
-
-        local instdir="$base_dir/.pgenv/versions/$a"
-
-        rm -fr "$a/DemoInstall" "$instdir"
-        printf "\n\n\n\n"
-        pushd "$a" > /dev/null
-        printf "Building $a\n"
-        make -j$(nproc) && make install && make -C contrib && make -C contrib install
-        popd > /dev/null
-        printf "\n\n\n\n"
+        all_branches+=("$a")
     done
+
+    local total=${#all_branches[@]}
+    local cores=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+    local max_parallel=4
+    (( max_parallel > total )) && max_parallel=$total
+    local jobs_per_build=$(( cores / max_parallel ))
+    (( jobs_per_build < 2 )) && jobs_per_build=2
+
+    # Launch all builds (each with limited -j to share CPU)
+    local -a jobs=()
+    for a in "${all_branches[@]}"; do
+        local instdir="$base_dir/.pgenv/versions/$a"
+        (
+            cd "$base_dir/$a"
+            rm -fr DemoInstall "$instdir"
+            make -j${jobs_per_build}
+            make -j${jobs_per_build} install
+            make -j${jobs_per_build} -C contrib
+            make -j${jobs_per_build} -C contrib install
+        ) > "$logdir/$a.log" 2>&1 &
+        jobs+=($! "$a")
+    done
+
+    _pgenv_wait_jobs "$logdir" "${jobs[@]}"
 )
 
 pgenv_new_branch() (
