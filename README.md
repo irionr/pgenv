@@ -52,14 +52,17 @@ When a new PostgreSQL major version enters development, bump `CURRENT_DEVEL`.
 | Prefix   | Example     | Branch pattern               | Base port |
 |----------|-------------|------------------------------|-----------|
 | *(none)* | `17`        | `REL_17_STABLE`              | 5400      |
+| `PGE`    | `PGE`       | `BDRPG-master`               | 6400      |
 | `PGE`    | `PGE14`     | `2QREL_14_STABLE_dev`        | 7400      |
 | `36PGE`  | `36PGE14`   | `2QREL_14_STABLE_3_6`        | 8400      |
+| `EDBAS`  | `EDBAS`     | `EDBAS-master`               | 9400      |
 | `EDBAS`  | `EDBAS16`   | `EDBAS_16_STABLE`            | 10400     |
+| `BDRPG`  | `BDRPG`     | `BDRPG-master`               | 11400     |
 | `BDRPG`  | `BDRPG16`   | `BDRPG_16_STABLE`            | 12400     |
 
 Using `master` or the `CURRENT_DEVEL` number resolves to the `master` branch.
 Bare flavor names without a version (e.g. `PGE`, `EDBAS`, `BDRPG`) resolve
-to the corresponding `*-master` branch.
+to the corresponding `*-master` branch with their own base port.
 
 ## Install master version (required)
 
@@ -131,6 +134,11 @@ Upgrade only one version (numeric version or master)
     ./clean-all.sh $VERSION
     ./configure-all.sh $VERSION
     ./install-all.sh $VERSION
+
+`pull-all.sh` and `clean-all.sh` run branches in parallel with a progress bar.
+Output is redirected to per-branch log files under
+`$SOURCE_DIR/.pgenv/logs/{pull,clean}/<branch>.log`. Failed branches are
+reported at the end with a pointer to the relevant log file.
 
 ## Usage
 
