@@ -134,6 +134,11 @@ pgworkon() {
         usage "Unknown version $1"
         return 1
     fi
+    if [ ! -d "$BINDIR" ]; then
+        echo "ERROR: $PG_BRANCH has not been built yet (no binaries in $BINDIR)" >&2
+        echo "Run: pgenv_configure_all $1 && pgenv_install_all $1" >&2
+        return 1
+    fi
     if [ -z "$PG_OLD_PATH" ]; then
         PG_OLD_PATH=$PATH
     fi

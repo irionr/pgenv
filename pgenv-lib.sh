@@ -267,9 +267,13 @@ pgenv_configure_all() (
         done
         ARGS+=(--with-includes="$INCLUDES")
         ARGS+=(--with-libraries="$LIBS")
+        # Explicitly link libxml2: Homebrew puts it in a non-standard prefix so
+        # contrib modules (e.g. dbms_xmldom) that use libxml2 won't find it via
+        # the default linker search path without an explicit -lxml2.
+        export LDFLAGS="${LDFLAGS:-} -L$(brew --prefix libxml2)/lib -lxml2"
     fi
 
-    ARGS+=(--with-libxml --with-openssl)
+    ARGS+=(--with-libxml --with-openssl --with-ldap)
     local -a DEBUG_ARGS=(--enable-depend --enable-cassert --enable-debug)
 
     if [ -n "$(perldoc -lm IPC::Run 2>/dev/null)" ]; then
@@ -337,6 +341,7 @@ pgenv_install_all() (
     for a in "${all_branches[@]}"; do
         local instdir="$base_dir/.pgenv/versions/$a"
         (
+            set -e
             cd "$base_dir/$a"
             rm -fr DemoInstall "$instdir"
             make -j${jobs_per_build}
