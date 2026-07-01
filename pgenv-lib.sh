@@ -101,6 +101,23 @@ _pgenv_skip_branch() {
     return 0  # skip
 }
 
+# Symlink a per-stable-branch CLAUDE.md template into a BDR worktree.
+# Args: <worktree_dir> <extension_branch>      (e.g. ~/work/BDR-1/bdr REL_6_STABLE)
+# Idempotent: only links if the template exists and no CLAUDE.md is present
+# (or the existing one is a stale symlink). Silent no-op otherwise.
+_pgenv_link_claude_md() {
+    local dir="$1" ext_branch="$2"
+    local tpl="$HOME/.claude/bdr-templates/${ext_branch}.md"
+    [ -f "$tpl" ] || return 0
+    [ -d "$dir" ] || return 0
+    local target="$dir/CLAUDE.md"
+    if [ -L "$target" ] && [ ! -e "$target" ]; then
+        rm -f "$target"  # broken symlink — replace it
+    fi
+    [ -e "$target" ] && return 0  # already present (regular file or live symlink)
+    ln -s "$tpl" "$target"
+}
+
 # Wait for parallel jobs, show per-branch completion and spinner.
 # Args: logdir pid1 branch1 pid2 branch2 ...
 _pgenv_wait_jobs() {
@@ -274,7 +291,7 @@ pgenv_configure_all() (
     fi
 
     ARGS+=(--with-libxml --with-openssl --with-ldap)
-    local -a DEBUG_ARGS=(--enable-depend --enable-cassert --enable-debug)
+    local -a DEBUG_ARGS=(--enable-depend --enable-cassert --enable-debug --with-llvm)
 
     if [ -n "$(perldoc -lm IPC::Run 2>/dev/null)" ]; then
         DEBUG_ARGS+=(--with-perl --enable-tap-tests)

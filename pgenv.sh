@@ -114,6 +114,7 @@ pgworkon() {
             cd $BASE_DIR/$PG_BRANCH
         else
             cd $BASE_DIR/bdr
+            _pgenv_link_claude_md "$BASE_DIR/bdr" "$EXTENSION_BRANCH"
         fi
         echo -ne "\e]1;${1} - ${2}\a"
     else
