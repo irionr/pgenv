@@ -58,6 +58,9 @@ pgworkon() {
     BASE_PORT=$_PGENV_BASE_PORT
 
     case "$3" in
+    main)
+        EXTENSION_BRANCH="main"
+        ;;
     6)
         EXTENSION_BRANCH="REL_6_STABLE"
         ;;
@@ -74,7 +77,7 @@ pgworkon() {
         EXTENSION_BRANCH="REL3_6_STABLE"
         ;;
     "")
-        EXTENSION_BRANCH="REL_6_STABLE"
+        EXTENSION_BRANCH="main"
         ;;
     esac
 

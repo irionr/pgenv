@@ -154,8 +154,8 @@ directory under `$HOME/work/<ticket>/` with a git worktree branched as
 `dev/fi/<ticket>`. For `BDR-*` tickets, bdr and pglogical worktrees are also
 created. For `PG-*` tickets, only the PostgreSQL worktree is set up.
 
-The third (optional) argument is the BDR/PGL extension version (e.g. `6`, `5`, `4`,
-`3.7`, `3.6`). Defaults to `6`.
+The third (optional) argument is the BDR/PGL extension version (e.g. `main`, `6`,
+`5`, `4`, `3.7`, `3.6`). Defaults to `main`.
 
 Example:
 
