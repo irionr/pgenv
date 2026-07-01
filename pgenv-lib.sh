@@ -6,7 +6,7 @@
 # Sourced by pgenv.sh (interactive) and by the thin wrapper scripts.
 
 : "${SOURCE_DIR:=$HOME/pgsql}"
-CURRENT_DEVEL=19
+CURRENT_DEVEL=20
 
 # Resolves a version string (e.g. "17", "PGE14", "BDRPG16") into branch
 # metadata. Sets: _PGENV_VERSION, _PGENV_BRANCH, _PGENV_MASTER, _PGENV_BASE_PORT

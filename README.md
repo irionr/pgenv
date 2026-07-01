@@ -43,7 +43,7 @@ also available directly in your shell (e.g. `pgenv_clean_all 17`).
 | Variable        | Default        | Purpose                                      |
 |-----------------|----------------|----------------------------------------------|
 | `SOURCE_DIR`    | `$HOME/pgsql`  | Where PostgreSQL/BDR source trees live        |
-| `CURRENT_DEVEL` | `19`           | Current development branch major version      |
+| `CURRENT_DEVEL` | `20`           | Current development branch major version      |
 
 When a new PostgreSQL major version enters development, bump `CURRENT_DEVEL`.
 
