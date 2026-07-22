@@ -353,12 +353,27 @@ pgenv_install_all() (
     local jobs_per_build=$(( cores / max_parallel ))
     (( jobs_per_build < 2 )) && jobs_per_build=2
 
-    # Launch all builds (each with limited -j to share CPU)
+    # Cap concurrency at max_parallel (jobs_per_build assumes only that many
+    # builds share the CPU). All subshells are launched immediately so
+    # _pgenv_wait_jobs shows live progress from the start; each build first
+    # acquires a slot via atomic mkdir and holds it until it exits.
+    local slots="$logdir/.slots"
+    rm -rf "$slots"
+    mkdir -p "$slots"
+
     local -a jobs=()
     for a in "${all_branches[@]}"; do
         local instdir="$base_dir/.pgenv/versions/$a"
         (
             set -e
+            while :; do
+                for (( s=1; s <= max_parallel; s++ )); do
+                    mkdir "$slots/$s" 2>/dev/null && break 2
+                done
+                sleep 1
+            done
+            trap 'rmdir "$slots/$s"' EXIT
+
             cd "$base_dir/$a"
             rm -fr DemoInstall "$instdir"
             make -j${jobs_per_build}

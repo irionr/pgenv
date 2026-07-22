@@ -140,6 +140,15 @@ Output is redirected to per-branch log files under
 `$SOURCE_DIR/.pgenv/logs/{pull,clean}/<branch>.log`. Failed branches are
 reported at the end with a pointer to the relevant log file.
 
+`install-all.sh` builds at most 4 branches concurrently (fewer if there are
+fewer branches to build), splitting the available CPU cores across them for
+`make -j`. This keeps overall CPU usage bounded instead of running every
+branch's build at once. All branch subshells start immediately (so the
+progress display is live from the start); each acquires a build slot via
+atomic `mkdir` under `$SOURCE_DIR/.pgenv/logs/install/.slots/` before
+compiling and releases it on exit. The slots directory is wiped at the start
+of every run, so an interrupted run cannot leak slots.
+
 ## Usage
 
 ### pgworkon
