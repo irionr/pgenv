@@ -433,7 +433,11 @@ pgenv_new_branch() (
 
     if [ -n "$jira" ]; then
         local TARGET_DIR="$HOME/work/$jira"
-        local DEVBRANCH="dev/fi/$jira"
+        # Suffixed with the worktree dir name (BRANCH) so a second PG
+        # flavor/version added to the same ticket, sharing the same
+        # MASTER repo (e.g. BDRPG17 after BDRPG18), gets its own branch
+        # instead of colliding with one already checked out elsewhere.
+        local DEVBRANCH="dev/fi/$jira.$BRANCH"
         pushd "$SOURCE_DIR/$MASTER" > /dev/null
         git worktree add "$TARGET_DIR/$BRANCH" "$DEVBRANCH" ||
             git worktree add -b "$DEVBRANCH" "$TARGET_DIR/$BRANCH" "$BRANCH"

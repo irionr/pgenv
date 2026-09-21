@@ -172,8 +172,15 @@ table above for valid prefixes.
 
 The second (optional) argument is the ticket number. It creates a work
 directory under `$HOME/work/<ticket>/` with a git worktree branched as
-`dev/fi/<ticket>`. For `BDR-*` tickets, bdr and pglogical worktrees are also
+`dev/fi/<ticket>.<branch>` (e.g. `dev/fi/BDR-8741.BDRPG_18_STABLE`) — the
+branch is suffixed with the PG worktree's own dir name so a second flavor
+or version added later to the same ticket doesn't collide with one already
+checked out. For `BDR-*` tickets, bdr and pglogical worktrees are also
 created. For `PG-*` tickets, only the PostgreSQL worktree is set up.
+
+Running `pgworkon` again for the same ticket with a different flavor/version
+(e.g. `pgworkon BDRPG17 BDR-8741` after `pgworkon BDRPG18 BDR-8741`) adds
+that PG worktree alongside the existing one — it does not replace it.
 
 The third (optional) argument is the BDR extension version (e.g. `main`, `6`,
 `5`, `4`, `3.7`, `3.6`). Defaults to `main`. When a version other than `main`
