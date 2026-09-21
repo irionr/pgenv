@@ -81,6 +81,20 @@ pgworkon() {
         ;;
     esac
 
+    # Version-aware bdr worktree dir/branch naming, so different BDR
+    # extension versions can coexist under the same ticket (e.g. "bdr6" /
+    # "dev/fi/<ticket>.r6" for `pgworkon ... 6`). Omitting the version (the
+    # common case) keeps today's plain "bdr" dir and unsuffixed branch —
+    # git worktrees can't check out the same branch twice, so without a
+    # suffix a second version for the same ticket would collide with the
+    # first one's branch.
+    local BDR_DIRNAME="bdr"
+    local BDR_BRANCH_SUFFIX=""
+    if [ -n "$3" ] && [ "$3" != "main" ]; then
+        BDR_DIRNAME="bdr$3"
+        BDR_BRANCH_SUFFIX=".r$3"
+    fi
+
     PG_VERS_NUM=${PG_VERSION/./}
     if [ ${PG_VERSION%%.*} -ge 10 ]; then
         PG_VERS_NUM=${PG_VERS_NUM}0
@@ -109,10 +123,10 @@ pgworkon() {
                     git worktree add $BASE_DIR/pgl dev/fi/$2
                 popd
             fi
-            if [ ! -d "$BASE_DIR/bdr" ]; then
+            if [ ! -d "$BASE_DIR/$BDR_DIRNAME" ]; then
                 pushd $BDR_REPO
-                git worktree add -b dev/fi/$2 $BASE_DIR/bdr $EXTENSION_BRANCH ||
-                    git worktree add $BASE_DIR/bdr dev/fi/$2
+                git worktree add -b dev/fi/$2$BDR_BRANCH_SUFFIX $BASE_DIR/$BDR_DIRNAME $EXTENSION_BRANCH ||
+                    git worktree add $BASE_DIR/$BDR_DIRNAME dev/fi/$2$BDR_BRANCH_SUFFIX
                 popd
             fi
             [ -d "$BASE_DIR/$PG_BRANCH" ] ||
@@ -125,8 +139,8 @@ pgworkon() {
         if [[ "$2" == PG-* ]]; then
             cd $BASE_DIR/$PG_BRANCH
         else
-            cd $BASE_DIR/bdr
-            _pgenv_link_claude_md "$BASE_DIR/bdr" "$EXTENSION_BRANCH"
+            cd $BASE_DIR/$BDR_DIRNAME
+            _pgenv_link_claude_md "$BASE_DIR/$BDR_DIRNAME" "$EXTENSION_BRANCH"
         fi
         echo -ne "\e]1;${1} - ${2}\a"
     else

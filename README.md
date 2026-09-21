@@ -175,15 +175,23 @@ directory under `$HOME/work/<ticket>/` with a git worktree branched as
 `dev/fi/<ticket>`. For `BDR-*` tickets, bdr and pglogical worktrees are also
 created. For `PG-*` tickets, only the PostgreSQL worktree is set up.
 
-The third (optional) argument is the BDR/PGL extension version (e.g. `main`, `6`,
-`5`, `4`, `3.7`, `3.6`). Defaults to `main`.
+The third (optional) argument is the BDR extension version (e.g. `main`, `6`,
+`5`, `4`, `3.7`, `3.6`). Defaults to `main`. When a version other than `main`
+is given, both the bdr worktree directory and its branch are named after it
+— e.g. `bdr6` on branch `dev/fi/<ticket>.r6` — instead of the plain `bdr` on
+`dev/fi/<ticket>`. This lets a different BDR version for the same ticket
+coexist instead of colliding (git can't check out the same branch in two
+worktrees). The pglogical worktree (`pgl`, branch `dev/fi/<ticket>`) is not
+version-suffixed — only one pglogical checkout exists per ticket regardless
+of how many BDR versions you work on.
 
 Example:
 
     pgworkon PGE14 BDR-42 4
 
-This creates a worktree in `$HOME/work/BDR-42` using Postgres Extended v14
-and BDR v4.
+This creates worktrees in `$HOME/work/BDR-42/bdr4` (branch `dev/fi/BDR-42.r4`)
+and `$HOME/work/BDR-42/pgl` (branch `dev/fi/BDR-42`), using Postgres Extended
+v14 and BDR v4.
 
 ### pgreinit
 
