@@ -288,6 +288,30 @@ pgenv_configure_all() (
         # contrib modules (e.g. dbms_xmldom) that use libxml2 won't find it via
         # the default linker search path without an explicit -lxml2.
         export LDFLAGS="${LDFLAGS:-} -L$(brew --prefix libxml2)/lib -lxml2"
+
+        # llvm is keg-only and never linked onto PATH by brew itself, and it's
+        # commonly installed only as a versioned formula (llvm@18, llvm@20, ...)
+        # rather than plain "llvm". Glob Homebrew's own opt dir directly rather
+        # than asking brew to resolve a formula name — formula/API lookups
+        # (brew --prefix <formula>, brew list --formula) have been observed to
+        # resolve inconsistently across shells on this machine, while a plain
+        # filesystem glob under the actual HOMEBREW_PREFIX is not.
+        # Rank candidates by their own reported version, not by directory
+        # name: plain "llvm" (unversioned) is a string-prefix of "llvm@18"
+        # etc., so a name-based sort always ranks it first — wrongly, when
+        # bare "llvm" is actually the newest installed one.
+        local brew_prefix=$(brew --prefix 2>/dev/null)
+        local llvm_config=$(
+            for c in $(ls -d "$brew_prefix"/opt/llvm*/bin/llvm-config 2>/dev/null); do
+                [ -x "$c" ] && printf '%s %s\n' "$("$c" --version 2>/dev/null)" "$c"
+            done | sort -V | awk '{print $2}' | tail -1
+        )
+        if [ -x "$llvm_config" ]; then
+            export PATH="$(dirname "$llvm_config"):$PATH"
+        else
+            echo "ERROR: no llvm-config found under $brew_prefix/opt/llvm* — install with 'brew install llvm'" >&2
+            return 1
+        fi
     fi
 
     ARGS+=(--with-libxml --with-openssl --with-ldap)

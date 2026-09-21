@@ -91,6 +91,18 @@ If you use Archlinux, please be sure that these packages are installed:
 
     sudo pacman -S tcl libxml2 openssl bison flex base-devel
 
+On macOS, install these packages via Homebrew:
+
+    brew install openssl readline libxml2 llvm
+
+`openssl`/`readline`/`libxml2`/`llvm` are all keg-only, so `configure-all.sh`
+resolves their install paths itself — no manual `PATH`/`LDFLAGS` setup needed.
+`llvm` in particular is required: `--with-llvm` is always passed, and
+`configure-all.sh` looks for `llvm-config` under `$(brew --prefix)/opt/llvm*`,
+picking the newest **installed** version if more than one is present (e.g.
+`llvm@18` and `llvm@20`). If none is installed, configure fails fast with an
+error telling you to `brew install llvm`.
+
 Build and install the development head version
 
     ./configure-all.sh master

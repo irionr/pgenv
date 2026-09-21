@@ -92,26 +92,35 @@ pgworkon() {
         JIRA="${JIRA#PG-}"
         local BASE_DIR="$HOME/work/$2"
         local PG_DIR="$BASE_DIR/.pgenv"
+        local BINDIR="$PG_DIR/versions/$PG_BRANCH/bin"
         PG_TEST_PORT_DIR="tmp_check"
 
-        if [ ! -d "$BASE_DIR" ]; then
-            if [[ "$2" == PG-* ]]; then
-                # Community PG ticket — only create PG worktree
-                pgenv_new_branch $1 $2
-            else
-                # BDR/PGE ticket — also create bdr and pgl worktrees
+        if [[ "$2" == PG-* ]]; then
+            # Community PG ticket — only create PG worktree
+            [ -d "$BASE_DIR/$PG_BRANCH" ] ||
+                pgenv_new_branch $1 $2 || { usage "ERROR: pgenv_new_branch failed for $1 $2"; return 1; }
+        else
+            # BDR/PGE ticket — also create bdr and pgl worktrees. Each is
+            # checked independently: one can already exist (e.g. from a
+            # previous partial setup) while another still needs creating.
+            if [ ! -d "$BASE_DIR/pgl" ]; then
                 pushd $PGL_REPO
                 git worktree add -b dev/fi/$2 $BASE_DIR/pgl $EXTENSION_BRANCH ||
                     git worktree add $BASE_DIR/pgl dev/fi/$2
                 popd
+            fi
+            if [ ! -d "$BASE_DIR/bdr" ]; then
                 pushd $BDR_REPO
                 git worktree add -b dev/fi/$2 $BASE_DIR/bdr $EXTENSION_BRANCH ||
                     git worktree add $BASE_DIR/bdr dev/fi/$2
                 popd
-                pgenv_new_branch $1 $2
             fi
-            pgenv_configure_all $1 $2
-            pgenv_install_all $1 $2
+            [ -d "$BASE_DIR/$PG_BRANCH" ] ||
+                pgenv_new_branch $1 $2 || { usage "ERROR: pgenv_new_branch failed for $1 $2"; return 1; }
+        fi
+        if [ ! -d "$BINDIR" ]; then
+            pgenv_configure_all $1 $2 || { usage "ERROR: configure failed for $PG_BRANCH (see $PG_DIR/logs/configure/$PG_BRANCH.log)"; return 1; }
+            pgenv_install_all $1 $2 || { usage "ERROR: install failed for $PG_BRANCH (see $PG_DIR/logs/install/$PG_BRANCH.log)"; return 1; }
         fi
         if [[ "$2" == PG-* ]]; then
             cd $BASE_DIR/$PG_BRANCH
@@ -123,16 +132,18 @@ pgworkon() {
     else
         local BASE_DIR="$SOURCE_DIR"
         local PG_DIR="$SOURCE_DIR/.pgenv"
+        local BINDIR="$PG_DIR/versions/$PG_BRANCH/bin"
         PG_TEST_PORT_DIR="tmp_check"
         if [ ! -d "$BASE_DIR/$PG_BRANCH" ]; then
-            pgenv_new_branch $1
-            pgenv_configure_all $1
-            pgenv_install_all $1
+            pgenv_new_branch $1 || { usage "ERROR: pgenv_new_branch failed for $1"; return 1; }
+        fi
+        if [ ! -d "$BINDIR" ]; then
+            pgenv_configure_all $1 || { usage "ERROR: configure failed for $PG_BRANCH (see $PG_DIR/logs/configure/$PG_BRANCH.log)"; return 1; }
+            pgenv_install_all $1 || { usage "ERROR: install failed for $PG_BRANCH (see $PG_DIR/logs/install/$PG_BRANCH.log)"; return 1; }
         fi
     fi
 
     local DIR="$SOURCE_DIR/$PG_BRANCH"
-    local BINDIR="$PG_DIR/versions/$PG_BRANCH/bin"
     local DATADIR="$PG_DIR/data/$PG_BRANCH/main"
     if [ ! -d "$DIR" ]; then
         usage "Unknown version $1"
@@ -140,7 +151,11 @@ pgworkon() {
     fi
     if [ ! -d "$BINDIR" ]; then
         echo "ERROR: $PG_BRANCH has not been built yet (no binaries in $BINDIR)" >&2
-        echo "Run: pgenv_configure_all $1 && pgenv_install_all $1" >&2
+        if [ -n "$2" ]; then
+            echo "Run: pgenv_configure_all $1 $2 && pgenv_install_all $1 $2" >&2
+        else
+            echo "Run: pgenv_configure_all $1 && pgenv_install_all $1" >&2
+        fi
         return 1
     fi
     if [ -z "$PG_OLD_PATH" ]; then
