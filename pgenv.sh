@@ -117,17 +117,17 @@ pgworkon() {
             # BDR/PGE ticket — also create bdr and pgl worktrees. Each is
             # checked independently: one can already exist (e.g. from a
             # previous partial setup) while another still needs creating.
-            if [ ! -d "$BASE_DIR/pgl" ]; then
-                pushd $PGL_REPO
-                git worktree add -b dev/fi/$2 $BASE_DIR/pgl $EXTENSION_BRANCH ||
-                    git worktree add $BASE_DIR/pgl dev/fi/$2
-                popd
+            # pglogical is only a separate repo for BDR 3.x (it was merged
+            # into BDR from 4 on), and only has REL3_x_STABLE branches.
+            if [[ "$EXTENSION_BRANCH" == REL3_* ]] && [ ! -d "$BASE_DIR/pgl" ]; then
+                git -C "$PGL_REPO" worktree add -b dev/fi/$2 $BASE_DIR/pgl $EXTENSION_BRANCH ||
+                    git -C "$PGL_REPO" worktree add $BASE_DIR/pgl dev/fi/$2 ||
+                    { usage "ERROR: could not create pgl worktree for $2"; return 1; }
             fi
             if [ ! -d "$BASE_DIR/$BDR_DIRNAME" ]; then
-                pushd $BDR_REPO
-                git worktree add -b dev/fi/$2$BDR_BRANCH_SUFFIX $BASE_DIR/$BDR_DIRNAME $EXTENSION_BRANCH ||
-                    git worktree add $BASE_DIR/$BDR_DIRNAME dev/fi/$2$BDR_BRANCH_SUFFIX
-                popd
+                git -C "$BDR_REPO" worktree add -b dev/fi/$2$BDR_BRANCH_SUFFIX $BASE_DIR/$BDR_DIRNAME $EXTENSION_BRANCH ||
+                    git -C "$BDR_REPO" worktree add $BASE_DIR/$BDR_DIRNAME dev/fi/$2$BDR_BRANCH_SUFFIX ||
+                    { usage "ERROR: could not create $BDR_DIRNAME worktree for $2"; return 1; }
             fi
             [ -d "$BASE_DIR/$PG_BRANCH" ] ||
                 pgenv_new_branch $1 $2 || { usage "ERROR: pgenv_new_branch failed for $1 $2"; return 1; }
@@ -157,7 +157,7 @@ pgworkon() {
         fi
     fi
 
-    local DIR="$SOURCE_DIR/$PG_BRANCH"
+    local DIR="$BASE_DIR/$PG_BRANCH"
     local DATADIR="$PG_DIR/data/$PG_BRANCH/main"
     if [ ! -d "$DIR" ]; then
         usage "Unknown version $1"

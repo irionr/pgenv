@@ -131,6 +131,10 @@ _pgenv_wait_jobs() {
     done
 
     local total=${#pids[@]} done=0 failed=0
+    if (( total == 0 )); then
+        echo "ERROR: no matching branches under $(pwd)" >&2
+        return 1
+    fi
     local -a failed_branches=()
     local spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
     local spin_len=10 spin_idx=0
@@ -371,6 +375,12 @@ pgenv_install_all() (
     done
 
     local total=${#all_branches[@]}
+    # Bail before max_parallel can become 0 below: zsh reports the
+    # resulting division by zero but still exits the subshell with 0.
+    if (( total == 0 )); then
+        echo "ERROR: no branches matching '${filter}' under $base_dir" >&2
+        return 1
+    fi
     local cores=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
     local max_parallel=4
     (( max_parallel > total )) && max_parallel=$total
@@ -411,8 +421,10 @@ pgenv_install_all() (
     _pgenv_wait_jobs "$logdir" "${jobs[@]}"
 )
 
+# Errors are checked explicitly rather than via `set -e`: callers invoke
+# this as `pgenv_new_branch ... || ...`, and both bash and zsh ignore
+# `set -e` inside a command that is part of a `||` list.
 pgenv_new_branch() (
-    set -e
     local version="$1" jira="$2"
 
     if [ -z "$version" ]; then
@@ -423,13 +435,14 @@ pgenv_new_branch() (
     _pgenv_resolve_version "$version"
     local BRANCH=$_PGENV_BRANCH
     local MASTER=$_PGENV_MASTER
+    local REPO="$SOURCE_DIR/$MASTER"
 
-    git --git-dir="$SOURCE_DIR/$MASTER/.git/" config gc.auto 0
-
-    if [ ! -d "$SOURCE_DIR/$MASTER" ]; then
+    if [ ! -d "$REPO" ]; then
         echo "ERROR: missing $MASTER directory" >&2
         return 1
     fi
+
+    git -C "$REPO" config gc.auto 0 || return 1
 
     if [ -n "$jira" ]; then
         local TARGET_DIR="$HOME/work/$jira"
@@ -438,17 +451,25 @@ pgenv_new_branch() (
         # MASTER repo (e.g. BDRPG17 after BDRPG18), gets its own branch
         # instead of colliding with one already checked out elsewhere.
         local DEVBRANCH="dev/fi/$jira.$BRANCH"
-        pushd "$SOURCE_DIR/$MASTER" > /dev/null
-        git worktree add "$TARGET_DIR/$BRANCH" "$DEVBRANCH" ||
-            git worktree add -b "$DEVBRANCH" "$TARGET_DIR/$BRANCH" "$BRANCH"
-        popd > /dev/null
+        git -C "$REPO" worktree add "$TARGET_DIR/$BRANCH" "$DEVBRANCH" ||
+            git -C "$REPO" worktree add -b "$DEVBRANCH" "$TARGET_DIR/$BRANCH" "$BRANCH" ||
+            return 1
     else
         if [ -d "$SOURCE_DIR/$BRANCH" ]; then
             echo "Nothing to do"
             return 0
         fi
-        pushd "$SOURCE_DIR/$MASTER" > /dev/null
-        git worktree add "$SOURCE_DIR/$BRANCH" "$BRANCH"
-        popd > /dev/null
+        # git refuses to check out a branch held by another worktree. The
+        # usual culprit is a ticket worktree left on the bare $BRANCH
+        # instead of its own dev/fi/<ticket>.$BRANCH branch.
+        local holder=$(git -C "$REPO" worktree list --porcelain |
+            awk -v ref="branch refs/heads/$BRANCH" '/^worktree /{wt=substr($0, 10)} $0 == ref {print wt}')
+        if [ -n "$holder" ]; then
+            echo "ERROR: $BRANCH is already checked out at $holder" >&2
+            echo "Move that worktree onto its own branch, e.g.:" >&2
+            echo "  git -C '$holder' switch -c dev/fi/<ticket>.$BRANCH" >&2
+            return 1
+        fi
+        git -C "$REPO" worktree add "$SOURCE_DIR/$BRANCH" "$BRANCH" || return 1
     fi
 )

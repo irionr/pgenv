@@ -175,8 +175,9 @@ directory under `$HOME/work/<ticket>/` with a git worktree branched as
 `dev/fi/<ticket>.<branch>` (e.g. `dev/fi/BDR-8741.BDRPG_18_STABLE`) — the
 branch is suffixed with the PG worktree's own dir name so a second flavor
 or version added later to the same ticket doesn't collide with one already
-checked out. For `BDR-*` tickets, bdr and pglogical worktrees are also
-created. For `PG-*` tickets, only the PostgreSQL worktree is set up.
+checked out. For `BDR-*` tickets, a bdr worktree is also created, plus a
+pglogical worktree when the BDR version is 3.6/3.7 (pglogical was merged
+into BDR from 4 on). For `PG-*` tickets, only the PostgreSQL worktree is set up.
 
 Running `pgworkon` again for the same ticket with a different flavor/version
 (e.g. `pgworkon BDRPG17 BDR-8741` after `pgworkon BDRPG18 BDR-8741`) adds
@@ -188,17 +189,17 @@ is given, both the bdr worktree directory and its branch are named after it
 — e.g. `bdr6` on branch `dev/fi/<ticket>.r6` — instead of the plain `bdr` on
 `dev/fi/<ticket>`. This lets a different BDR version for the same ticket
 coexist instead of colliding (git can't check out the same branch in two
-worktrees). The pglogical worktree (`pgl`, branch `dev/fi/<ticket>`) is not
-version-suffixed — only one pglogical checkout exists per ticket regardless
+worktrees). The pglogical worktree (`pgl`, branch `dev/fi/<ticket>`, BDR 3.x
+only) is not version-suffixed — only one pglogical checkout exists per ticket regardless
 of how many BDR versions you work on.
 
 Example:
 
     pgworkon PGE14 BDR-42 4
 
-This creates worktrees in `$HOME/work/BDR-42/bdr4` (branch `dev/fi/BDR-42.r4`)
-and `$HOME/work/BDR-42/pgl` (branch `dev/fi/BDR-42`), using Postgres Extended
-v14 and BDR v4.
+This creates the worktree `$HOME/work/BDR-42/bdr4` (branch `dev/fi/BDR-42.r4`),
+using Postgres Extended v14 and BDR v4. With `3.7` instead of `4` it would
+also create `$HOME/work/BDR-42/pgl` (branch `dev/fi/BDR-42`).
 
 ### pgreinit
 
